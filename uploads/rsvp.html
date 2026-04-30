@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Château Privé · RSVP</title>
+<meta name="description" content="Château Privé — Vendredi 15 Mai. Private Castle, Cannes." />
+
+<meta property="og:title" content="Château Privé · RSVP" />
+<meta property="og:description" content="Vendredi · 15 Mai · Private Castle · Cannes" />
+<meta property="og:image" content="castle.jpg" />
+<meta property="og:type" content="website" />
+
+<link rel="preload" as="image" href="castle.jpg" />
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --cream: #F1ECDF;
+    --cream-deep: #E9E2D2;
+    --ink: #1A1612;
+    --ink-soft: #4a4337;
+    --ink-faint: #8a8270;
+    --gold: #B8965A;
+    --gold-deep: #9a7d44;
+    --gold-light: #d4b884;
+    --hairline: rgba(26, 22, 18, 0.14);
+    --hairline-strong: rgba(26, 22, 18, 0.28);
+    --hairline-light: rgba(241, 236, 223, 0.22);
+    --serif: 'Cormorant Garamond', 'Times New Roman', serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--cream);
+    color: var(--ink);
+    font-family: var(--serif);
+    font-weight: 400;
+    font-size: 17px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+  }
+
+  ::selection { background: var(--gold); color: var(--cream); }
+  a { color: inherit; text-decoration: none; }
+
+  .container {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 0 40px;
+  }
+
+  @media (max-width: 640px) {
+    .container { padding: 0 24px; }
+  }
+
+  .caps { text-transform: uppercase; letter-spacing: 0.22em; font-weight: 400; }
+  .caps-tight { text-transform: uppercase; letter-spacing: 0.16em; font-weight: 400; }
+  .caps-wide { text-transform: uppercase; letter-spacing: 0.32em; font-weight: 400; }
+
+  /* ============================================
+     NAV — sits over hero, light text on dark
+     ============================================ */
+  .nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    padding: 24px 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .nav-mark {
+    font-style: italic;
+    font-size: 22px;
+    font-weight: 500;
+    color: var(--gold-light);
+    letter-spacing: 0.01em;
+    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.5);
+  }
+
+  .nav-meta {
+    font-size: 11px;
+    color: var(--cream);
+    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.5);
+  }
+
+  @media (max-width: 640px) {
+    .nav { padding: 18px 24px; }
+    .nav-mark { font-size: 19px; }
+    .nav-meta { font-size: 10px; }
+  }
+
+  /* ============================================
+     HERO — full viewport, castle as background
+     ============================================ */
+  .hero {
+    position: relative;
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+    text-align: center;
+    overflow: hidden;
+    padding: 120px 40px 80px;
+  }
+
+  .hero-bg {
+    position: absolute;
+    inset: 0;
+    background-image: url('castle.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    z-index: 0;
+    /* Slight desaturation to harmonize with cream palette below */
+    filter: saturate(0.85) contrast(1.05);
+  }
+
+  /* Layered gradient: darker at top (for nav legibility), darker at bottom (for text legibility) */
+  .hero-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background:
+      linear-gradient(180deg,
+        rgba(15, 12, 9, 0.55) 0%,
+        rgba(15, 12, 9, 0.15) 25%,
+        rgba(15, 12, 9, 0.25) 55%,
+        rgba(15, 12, 9, 0.85) 100%
+      );
+  }
+
+  /* Subtle vignette on top of gradient for cinematic depth */
+  .hero-overlay::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at center, transparent 40%, rgba(15, 12, 9, 0.45) 100%);
+    pointer-events: none;
+  }
+
+  .hero-content {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    max-width: 900px;
+    color: var(--cream);
+  }
+
+  .hero-eyebrow {
+    font-size: 12px;
+    color: var(--gold-light);
+    margin-bottom: 24px;
+    opacity: 0;
+    animation: fadeUp 1.2s ease-out 0.2s forwards;
+  }
+
+  .hero-eyebrow sup {
+    font-size: 8px;
+    vertical-align: super;
+    margin-right: 1px;
+  }
+
+  .hero-title {
+    font-style: italic;
+    font-weight: 500;
+    font-size: clamp(64px, 11vw, 156px);
+    line-height: 0.92;
+    letter-spacing: -0.015em;
+    color: var(--gold-light);
+    margin-bottom: 32px;
+    text-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    animation: fadeUp 1.4s ease-out 0.4s forwards;
+  }
+
+  .hero-date {
+    font-size: 16px;
+    color: var(--cream);
+    margin-bottom: 14px;
+    opacity: 0;
+    animation: fadeUp 1.4s ease-out 0.6s forwards;
+  }
+
+  .hero-date .dot {
+    display: inline-block;
+    width: 4px;
+    height: 4px;
+    background: var(--gold-light);
+    border-radius: 50%;
+    margin: 0 16px;
+    vertical-align: middle;
+    transform: translateY(-2px);
+  }
+
+  .hero-meta {
+    font-size: 15px;
+    color: rgba(241, 236, 223, 0.85);
+    font-style: italic;
+    opacity: 0;
+    animation: fadeUp 1.4s ease-out 0.75s forwards;
+  }
+
+  .hero-meta .sep {
+    color: var(--gold-light);
+    margin: 0 12px;
+    font-style: normal;
+  }
+
+  .hero-scroll {
+    position: absolute;
+    bottom: 32px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 2;
+    color: rgba(241, 236, 223, 0.55);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.32em;
+    opacity: 0;
+    animation: fadeUp 1.4s ease-out 1s forwards;
+  }
+
+  .hero-scroll::after {
+    content: '';
+    display: block;
+    width: 1px;
+    height: 28px;
+    background: rgba(241, 236, 223, 0.4);
+    margin: 14px auto 0;
+  }
+
+  @media (max-width: 640px) {
+    .hero { padding: 100px 24px 70px; }
+    .hero-date .dot { margin: 0 10px; }
+    .hero-meta .sep { margin: 0 8px; }
+    .hero-scroll { bottom: 18px; }
+  }
+
+  /* ============================================
+     THE EVENING — hard facts, ABOVE the form
+     ============================================ */
+  .details {
+    padding: 100px 0 60px;
+  }
+
+  .details-eyebrow {
+    text-align: center;
+    font-size: 11px;
+    color: var(--ink-faint);
+    margin-bottom: 36px;
+  }
+
+  .details-title {
+    text-align: center;
+    font-style: italic;
+    font-size: clamp(36px, 5.5vw, 64px);
+    line-height: 1.05;
+    color: var(--ink);
+    margin-bottom: 56px;
+  }
+
+  .details-title em {
+    color: var(--gold);
+    font-weight: 500;
+  }
+
+  .details-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+    border-top: 1px solid var(--hairline);
+    border-left: 1px solid var(--hairline);
+    max-width: 920px;
+    margin: 0 auto;
+  }
+
+  .detail-cell {
+    border-right: 1px solid var(--hairline);
+    border-bottom: 1px solid var(--hairline);
+    padding: 36px 28px;
+    text-align: center;
+  }
+
+  .detail-label {
+    font-size: 10px;
+    color: var(--ink-faint);
+    margin-bottom: 12px;
+  }
+
+  .detail-value {
+    font-style: italic;
+    font-size: 24px;
+    font-weight: 400;
+    color: var(--ink);
+    line-height: 1.2;
+  }
+
+  @media (max-width: 880px) {
+    .details-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  @media (max-width: 640px) {
+    .details { padding: 70px 0 40px; }
+    .detail-cell { padding: 26px 18px; }
+    .detail-value { font-size: 20px; }
+  }
+
+  /* ============================================
+     RSVP — comes AFTER details
+     ============================================ */
+  .rsvp {
+    padding: 60px 0 120px;
+  }
+
+  .rsvp-divider {
+    width: 80px;
+    height: 1px;
+    background: var(--gold);
+    margin: 0 auto 56px;
+  }
+
+  .rsvp-head {
+    text-align: center;
+    margin-bottom: 64px;
+  }
+
+  .rsvp-eyebrow {
+    font-size: 11px;
+    color: var(--ink-faint);
+    margin-bottom: 16px;
+  }
+
+  .rsvp-title {
+    font-style: italic;
+    font-weight: 400;
+    font-size: clamp(40px, 6.5vw, 84px);
+    line-height: 1.02;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+    margin-bottom: 22px;
+  }
+
+  .rsvp-title em {
+    color: var(--gold);
+    font-weight: 500;
+  }
+
+  .rsvp-intro {
+    font-size: 16px;
+    color: var(--ink-soft);
+    font-style: italic;
+    max-width: 520px;
+    margin: 0 auto;
+    line-height: 1.65;
+  }
+
+  .form {
+    max-width: 640px;
+    margin: 0 auto;
+  }
+
+  .form-field {
+    position: relative;
+    border-bottom: 1px solid var(--hairline-strong);
+    padding: 28px 0 14px;
+    transition: border-color 0.3s ease;
+  }
+
+  .form-field:focus-within {
+    border-bottom-color: var(--gold);
+  }
+
+  .form-field label {
+    display: block;
+    font-size: 10px;
+    color: var(--ink-faint);
+    margin-bottom: 10px;
+    transition: color 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.22em;
+  }
+
+  .form-field:focus-within label {
+    color: var(--gold-deep);
+  }
+
+  .form-field input[type="text"],
+  .form-field input[type="email"] {
+    width: 100%;
+    background: transparent;
+    border: none;
+    outline: none;
+    font-family: var(--serif);
+    font-size: 22px;
+    font-weight: 400;
+    color: var(--ink);
+    padding: 0;
+  }
+
+  .form-field input::placeholder {
+    color: var(--ink-faint);
+    font-style: italic;
+    opacity: 0.6;
+  }
+
+  .toggle-group {
+    display: flex;
+    gap: 0;
+    margin-top: 6px;
+  }
+
+  .toggle {
+    flex: 1;
+    background: transparent;
+    border: 1px solid var(--hairline-strong);
+    color: var(--ink-soft);
+    padding: 16px 24px;
+    font-family: var(--serif);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.24em;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .toggle:first-child { border-right: none; }
+
+  .toggle:hover {
+    color: var(--ink);
+    border-color: var(--ink);
+  }
+
+  .toggle.active {
+    background: var(--ink);
+    color: var(--cream);
+    border-color: var(--ink);
+  }
+
+  .plus-one-details {
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    transition: max-height 0.5s ease, opacity 0.4s ease;
+  }
+
+  .plus-one-details.visible {
+    max-height: 220px;
+    opacity: 1;
+  }
+
+  .form-submit {
+    margin-top: 56px;
+    width: 100%;
+    background: var(--ink);
+    border: 1px solid var(--ink);
+    color: var(--cream);
+    padding: 22px 40px;
+    font-family: var(--serif);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.3em;
+    cursor: pointer;
+    transition: all 0.4s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .form-submit::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--gold);
+    transform: translateX(-101%);
+    transition: transform 0.4s ease;
+    z-index: 0;
+  }
+
+  .form-submit:hover::before { transform: translateX(0); }
+  .form-submit span { position: relative; z-index: 1; }
+
+  .form-submit:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .form-disclaimer {
+    margin-top: 22px;
+    font-size: 13px;
+    color: var(--ink-faint);
+    line-height: 1.6;
+    font-style: italic;
+    text-align: center;
+  }
+
+  .form-success {
+    display: none;
+    text-align: center;
+    padding: 40px 20px;
+  }
+
+  .form-success.active { display: block; }
+  .form.hidden { display: none; }
+
+  .success-mark {
+    font-style: italic;
+    font-size: 56px;
+    color: var(--gold);
+    margin-bottom: 24px;
+    line-height: 1;
+  }
+
+  .success-title {
+    font-style: italic;
+    font-size: 38px;
+    font-weight: 400;
+    margin-bottom: 20px;
+    color: var(--ink);
+  }
+
+  .success-body {
+    font-size: 16px;
+    color: var(--ink-soft);
+    line-height: 1.7;
+    max-width: 460px;
+    margin: 0 auto;
+    font-style: italic;
+  }
+
+  @media (max-width: 640px) {
+    .rsvp { padding: 40px 0 80px; }
+    .rsvp-head { margin-bottom: 40px; }
+    .rsvp-divider { margin-bottom: 40px; }
+  }
+
+  /* ============================================
+     FOOTER
+     ============================================ */
+  .footer {
+    padding: 56px 0 44px;
+    border-top: 1px solid var(--hairline);
+    text-align: center;
+  }
+
+  .footer-mark {
+    font-style: italic;
+    font-size: 26px;
+    color: var(--gold);
+    font-weight: 500;
+    margin-bottom: 12px;
+  }
+
+  .footer-meta {
+    font-size: 11px;
+    color: var(--ink-faint);
+    line-height: 1.9;
+  }
+
+  /* ============================================
+     ANIMATIONS
+     ============================================ */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+</style>
+</head>
+<body>
+
+  <nav class="nav">
+    <div class="nav-mark">Château Privé</div>
+    <div class="nav-meta caps-tight">Cannes · MMXXVI</div>
+  </nav>
+
+  <!-- ============ HERO — full screen castle ============ -->
+  <section class="hero">
+    <div class="hero-bg"></div>
+    <div class="hero-overlay"></div>
+
+    <div class="hero-content">
+      <div class="hero-eyebrow caps"><sup>79</sup>th Cannes Film Festival</div>
+      <h1 class="hero-title">Château Privé</h1>
+      <div class="hero-date caps-tight">
+        Vendredi <span class="dot"></span> 15 Mai
+      </div>
+      <div class="hero-meta">
+        Private Castle · Cannes <span class="sep">/</span> Invite Only
+      </div>
+    </div>
+
+    <div class="hero-scroll">Scroll</div>
+  </section>
+
+  <!-- ============ THE EVENING — Hard Facts ============ -->
+  <section class="details">
+    <div class="container">
+      <div class="details-eyebrow caps-wide">The Evening</div>
+      <h2 class="details-title">The <em>essentials.</em></h2>
+
+      <div class="details-grid">
+        <div class="detail-cell">
+          <div class="detail-label caps">Date</div>
+          <div class="detail-value">15 Mai 2026</div>
+        </div>
+        <div class="detail-cell">
+          <div class="detail-label caps">Doors</div>
+          <div class="detail-value">From 5 PM</div>
+        </div>
+        <div class="detail-cell">
+          <div class="detail-label caps">Address</div>
+          <div class="detail-value">Cannes</div>
+        </div>
+        <div class="detail-cell">
+          <div class="detail-label caps">Dress</div>
+          <div class="detail-value">Glamour Chic</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ RSVP ============ -->
+  <section class="rsvp" id="rsvp">
+    <div class="container">
+      <div class="rsvp-divider"></div>
+
+      <div class="rsvp-head">
+        <div class="rsvp-eyebrow caps-wide">Confirm your attendance</div>
+        <h2 class="rsvp-title">Kindly <em>respond.</em></h2>
+        <p class="rsvp-intro">
+          Your invitation is personal. Please confirm below.
+          A reply will follow within five business days.
+        </p>
+      </div>
+
+      <!--
+        ============================================
+        FORM SUBMISSION — ONE-LINE SETUP
+        ============================================
+        Replace YOUR_FORMSPREE_ID below with your Formspree form ID
+        (e.g. "xrgwypvk"). Get it free at https://formspree.io
+        Sign up → New Form → Copy the form's ID from the URL.
+
+        That's it. The form will:
+          1. Send each submission to your inbox
+          2. Auto-reply to the guest (configurable in Formspree settings)
+          3. Store all entries in your Formspree dashboard
+      -->
+      <form class="form"
+            id="rsvpForm"
+            action="https://formspree.io/f/YOUR_FORMSPREE_ID"
+            method="POST"
+            novalidate>
+
+        <!-- Subject line for the email Formspree sends you -->
+        <input type="hidden" name="_subject" value="New RSVP — Château Privé" />
+
+        <div class="form-field">
+          <label for="name">Full Name</label>
+          <input type="text" id="name" name="name" placeholder="Your name" required autocomplete="name" />
+        </div>
+
+        <div class="form-field">
+          <label for="email">Email</label>
+          <input type="email" id="email" name="email" placeholder="you@domain.com" required autocomplete="email" />
+        </div>
+
+        <div class="form-field">
+          <label for="instagram">Instagram</label>
+          <input type="text" id="instagram" name="instagram" placeholder="@handle" required />
+        </div>
+
+        <div class="form-field">
+          <label>Plus One</label>
+          <div class="toggle-group">
+            <button type="button" class="toggle" data-value="no">No</button>
+            <button type="button" class="toggle" data-value="yes">Yes</button>
+          </div>
+          <input type="hidden" id="plusOne" name="plusOne" value="" />
+        </div>
+
+        <div class="plus-one-details" id="plusOneDetails">
+          <div class="form-field">
+            <label for="plusOneName">Plus One — Name & Instagram</label>
+            <input type="text" id="plusOneName" name="plusOneName" placeholder="Full name · @handle" />
+          </div>
+        </div>
+
+        <div class="form-field">
+          <label for="staying">Where will you be staying in Cannes?</label>
+          <input type="text" id="staying" name="staying" placeholder="Hotel or residence" required />
+        </div>
+
+        <button type="submit" class="form-submit"><span>Submit Response</span></button>
+
+        <p class="form-disclaimer">
+          Submission does not guarantee admittance. All responses are personally reviewed.
+        </p>
+      </form>
+
+      <div class="form-success" id="formSuccess">
+        <div class="success-mark">—</div>
+        <h3 class="success-title">Response received.</h3>
+        <p class="success-body">
+          Thank you. A confirmation has been sent to your inbox.
+          Final acceptance — should it follow — will arrive by separate notice.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-mark">Château Privé</div>
+      <div class="footer-meta caps-tight">
+        Vendredi · 15 Mai · MMXXVI<br>
+        Privately Hosted · Invite Only
+      </div>
+    </div>
+  </footer>
+
+<script>
+  // ============ Plus One Toggle ============
+  const toggles = document.querySelectorAll('.toggle');
+  const plusOneInput = document.getElementById('plusOne');
+  const plusOneDetails = document.getElementById('plusOneDetails');
+
+  toggles.forEach(t => {
+    t.addEventListener('click', () => {
+      toggles.forEach(x => x.classList.remove('active'));
+      t.classList.add('active');
+      const val = t.dataset.value;
+      plusOneInput.value = val;
+      if (val === 'yes') {
+        plusOneDetails.classList.add('visible');
+      } else {
+        plusOneDetails.classList.remove('visible');
+        document.getElementById('plusOneName').value = '';
+      }
+    });
+  });
+
+  // ============ Form Submit (AJAX to Formspree) ============
+  const form = document.getElementById('rsvpForm');
+  const success = document.getElementById('formSuccess');
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const submitBtn = form.querySelector('.form-submit');
+    submitBtn.disabled = true;
+    submitBtn.querySelector('span').textContent = 'Submitting…';
+
+    // Validate
+    const requiredFields = ['name', 'email', 'instagram', 'staying'];
+    for (const id of requiredFields) {
+      if (!document.getElementById(id).value.trim()) {
+        alert('Please complete all fields.');
+        submitBtn.disabled = false;
+        submitBtn.querySelector('span').textContent = 'Submit Response';
+        return;
+      }
+    }
+    if (!plusOneInput.value) {
+      alert('Please indicate whether you will bring a plus one.');
+      submitBtn.disabled = false;
+      submitBtn.querySelector('span').textContent = 'Submit Response';
+      return;
+    }
+
+    try {
+      const formData = new FormData(form);
+      const response = await fetch(form.action, {
+        method: 'POST',
+        body: formData,
+        headers: { 'Accept': 'application/json' }
+      });
+
+      if (response.ok) {
+        form.classList.add('hidden');
+        success.classList.add('active');
+        window.scrollTo({ top: success.offsetTop - 100, behavior: 'smooth' });
+      } else {
+        throw new Error('Submit failed');
+      }
+    } catch (err) {
+      alert('Something went wrong. Please try again.');
+      submitBtn.disabled = false;
+      submitBtn.querySelector('span').textContent = 'Submit Response';
+    }
+  });
+</script>
+
+</body>
+</html>
