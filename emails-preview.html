@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Château Privé — Email Templates</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=EB+Garamond:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root { --cream:#F1ECDF; --paper:#FBF7EC; --ink:#1A1612; --gold:#B8965A; --muted:#8a8270; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:#E8E2D2; font-family:'EB Garamond', Georgia, serif; color:var(--ink); }
+  .top { padding: 56px 32px 32px; text-align:center; border-bottom: 1px solid rgba(26,22,18,0.12); background:var(--cream); }
+  .top .eyebrow { font-size: 11px; letter-spacing: 4px; text-transform: uppercase; color: var(--muted); margin: 0 0 16px; }
+  .top h1 { font-family: 'Cormorant Garamond', serif; font-style: italic; font-weight: 300; font-size: 56px; color: var(--gold); margin: 0 0 12px; letter-spacing: -0.5px; }
+  .top p { max-width: 560px; margin: 0 auto; font-size: 16px; line-height: 1.6; color: #4a4337; }
+  .grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 32px; padding: 48px 32px 80px; max-width: 1600px; margin: 0 auto; }
+  .card { background: var(--paper); border: 1px solid rgba(26,22,18,0.10); display:flex; flex-direction:column; }
+  .card__head { padding: 20px 24px; border-bottom: 1px solid rgba(26,22,18,0.10); display:flex; justify-content:space-between; align-items:baseline; gap:16px; }
+  .card__num { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--muted); }
+  .card__title { font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 22px; color: var(--ink); }
+  .card__meta { padding: 8px 24px 16px; font-size: 13px; color: var(--muted); line-height: 1.5; border-bottom: 1px solid rgba(26,22,18,0.06); }
+  .card__meta b { color: #4a4337; font-weight: 500; }
+  .card__frame { background: #ddd; padding: 0; height: 640px; overflow: hidden; }
+  .card__frame iframe { width: 100%; height: 100%; border: 0; display: block; background: var(--cream); }
+  .card__foot { padding: 14px 24px; display:flex; gap: 12px; justify-content:flex-end; border-top: 1px solid rgba(26,22,18,0.08); }
+  .btn { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; padding: 8px 14px; text-decoration:none; }
+  .btn--dark { background: var(--ink); color: var(--cream); }
+  .btn--ghost { border: 1px solid rgba(26,22,18,0.3); color: var(--ink); }
+  .legend { padding: 32px; max-width: 900px; margin: 0 auto 64px; background: var(--paper); border: 1px solid rgba(26,22,18,0.10); }
+  .legend h2 { font-family: 'Cormorant Garamond', serif; font-style: italic; font-weight: 300; font-size: 28px; margin: 0 0 16px; color: var(--ink); }
+  .legend code { background: rgba(26,22,18,0.06); padding: 2px 6px; font-size: 13px; border-radius: 2px; }
+  .legend ul { padding-left: 20px; line-height: 1.7; color: #4a4337; }
+  .legend li { margin-bottom: 6px; }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <p class="eyebrow">Resend &middot; HTML Email Templates</p>
+  <h1>Château Privé</h1>
+  <p>Five transactional templates designed to match the invitation site. Each is a self-contained HTML file ready to paste into Resend, send via the API, or preview standalone. Variables in <code style="background:rgba(26,22,18,0.06); padding:2px 6px; font-size:14px;">{{double_braces}}</code>.</p>
+</header>
+
+<section class="grid">
+
+  <article class="card">
+    <div class="card__head">
+      <span class="card__num">01 &middot; Auto-reply</span>
+      <span class="card__title">Thank you.</span>
+    </div>
+    <div class="card__meta">
+      <b>Trigger:</b> instant, on form submit (Resend API call from Formspree webhook, or direct from your server).<br/>
+      <b>Subject:</b> Your request has been received — Château Privé<br/>
+      <b>Variables:</b> <code>{{name}}</code>
+    </div>
+    <div class="card__frame"><iframe src="emails/01-auto-reply.html" loading="lazy"></iframe></div>
+    <div class="card__foot">
+      <a class="btn btn--ghost" href="emails/01-auto-reply.html" target="_blank">Open</a>
+    </div>
+  </article>
+
+  <article class="card">
+    <div class="card__head">
+      <span class="card__num">02 &middot; Approval</span>
+      <span class="card__title">Welcome.</span>
+    </div>
+    <div class="card__meta">
+      <b>Trigger:</b> manual, after host approves applicant.<br/>
+      <b>Subject:</b> You are confirmed — Château Privé, 15 May 2026<br/>
+      <b>Variables:</b> <code>{{name}}</code> <code>{{address_line_1}}</code> <code>{{address_line_2}}</code> <code>{{postal_code}}</code> <code>{{map_link}}</code>
+    </div>
+    <div class="card__frame"><iframe src="emails/02-approval.html" loading="lazy"></iframe></div>
+    <div class="card__foot">
+      <a class="btn btn--ghost" href="emails/02-approval.html" target="_blank">Open</a>
+    </div>
+  </article>
+
+  <article class="card">
+    <div class="card__head">
+      <span class="card__num">03 &middot; Decline</span>
+      <span class="card__title">With regret.</span>
+    </div>
+    <div class="card__meta">
+      <b>Trigger:</b> manual, for applicants who cannot be accommodated.<br/>
+      <b>Subject:</b> Regarding your request — Château Privé<br/>
+      <b>Variables:</b> <code>{{name}}</code>
+    </div>
+    <div class="card__frame"><iframe src="emails/03-decline.html" loading="lazy"></iframe></div>
+    <div class="card__foot">
+      <a class="btn btn--ghost" href="emails/03-decline.html" target="_blank">Open</a>
+    </div>
+  </article>
+
+  <article class="card">
+    <div class="card__head">
+      <span class="card__num">04 &middot; Reminder</span>
+      <span class="card__title">Final details.</span>
+    </div>
+    <div class="card__meta">
+      <b>Trigger:</b> scheduled, 3 days before event (BCC to all confirmed).<br/>
+      <b>Subject:</b> Final details — Château Privé, this Friday<br/>
+      <b>Variables:</b> <code>{{name}}</code> <code>{{address_line_1}}</code> <code>{{postal_code}}</code> <code>{{coordinates}}</code> <code>{{map_link}}</code>
+    </div>
+    <div class="card__frame"><iframe src="emails/04-reminder.html" loading="lazy"></iframe></div>
+    <div class="card__foot">
+      <a class="btn btn--ghost" href="emails/04-reminder.html" target="_blank">Open</a>
+    </div>
+  </article>
+
+  <article class="card">
+    <div class="card__head">
+      <span class="card__num">05 &middot; Day Of</span>
+      <span class="card__title">Tonight.</span>
+    </div>
+    <div class="card__meta">
+      <b>Trigger:</b> scheduled, morning of event (BCC to all confirmed). Dark variant.<br/>
+      <b>Subject:</b> Tonight — Château Privé<br/>
+      <b>Variables:</b> <code>{{name}}</code> <code>{{address_line_1}}</code> <code>{{coordinates}}</code> <code>{{map_link}}</code>
+    </div>
+    <div class="card__frame" style="background:#1A1612;"><iframe src="emails/05-day-of.html" loading="lazy"></iframe></div>
+    <div class="card__foot">
+      <a class="btn btn--ghost" href="emails/05-day-of.html" target="_blank">Open</a>
+    </div>
+  </article>
+
+</section>
+
+<section class="legend">
+  <h2>Sending via Resend</h2>
+  <ul>
+    <li>Add &amp; verify your sender domain in Resend (DNS: SPF, DKIM, DMARC). Use a sender like <code>rsvp@chateau-prive.com</code>.</li>
+    <li>Each <code>emails/0X-*.html</code> file is self-contained — open, replace <code>{{tokens}}</code>, send.</li>
+    <li>From the API: <code>POST /emails</code> with <code>html</code> body. Use Resend's React/JSX templating or simple string replace.</li>
+    <li>For the auto-reply (01), wire it to your Formspree webhook or send it directly from your own backend on form submit.</li>
+    <li>Approval (02) and Decline (03) are sent manually — paste the HTML into Resend's UI and replace tokens, or build a small admin form.</li>
+    <li>Reminder (04) and Day-of (05) — schedule via Resend's scheduling, or a cron job on your server.</li>
+    <li>All templates: 600px max, table-based, inline-styled, Google Fonts with Georgia fallback. Tested layouts work in Gmail, Apple Mail, Outlook (modern), iOS, Android.</li>
+  </ul>
+</section>
+
+</body>
+</html>
