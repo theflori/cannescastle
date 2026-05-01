@@ -5,117 +5,168 @@
 
 export async function onRequestPost({ request, env }) {
   try {
-    // Optional: verify webhook is from Formspree
-    // Formspree can send a secret in the request — set FORMSPREE_SECRET env var if you want this check
-    if (env.FORMSPREE_SECRET) {
-      const providedSecret = request.headers.get('X-Formspree-Secret') || new URL(request.url).searchParams.get('secret');
-      if (providedSecret !== env.FORMSPREE_SECRET) {
-        return new Response('Unauthorized', { status: 401 });
+    // Parse incoming webhook payload — handles all formats Formspree might send
+    let raw;
+    const contentType = (request.headers.get('content-type') || '').toLowerCase();
+
+    if (contentType.includes('application/json')) {
+      raw = await request.json();
+    } else if (contentType.includes('application/x-www-form-urlencoded') || contentType.includes('multipart/form-data')) {
+      const formData = await request.formData();
+      raw = Object.fromEntries(formData);
+    } else {
+      // Fallback: try JSON, then form data
+      const text = await request.text();
+      try {
+        raw = JSON.parse(text);
+      } catch {
+        const params = new URLSearchParams(text);
+        raw = Object.fromEntries(params);
       }
     }
 
-    // Parse incoming webhook payload
-    let payload;
-    const contentType = request.headers.get('content-type') || '';
-    if (contentType.includes('application/json')) {
-      payload = await request.json();
-    } else {
-      const formData = await request.formData();
-      payload = Object.fromEntries(formData);
-    }
+    console.log('Received payload:', JSON.stringify(raw));
 
-    // Formspree sends submission fields directly OR nested under "data"
-    // We try both shapes
-    const fields = payload.data || payload.fields || payload;
+    // Formspree wraps fields in different shapes depending on plan/setup
+    // Try common nested locations
+    const fields = raw.data || raw.fields || raw.payload || raw.submission || raw;
 
+    // Extract values — try many possible field name variations
     const data = {
-      fullName: getField(fields, ['name', 'Full Name', 'fullName', 'full_name']) || '',
-      email: getField(fields, ['email', 'Email']) || '',
-      phone: getField(fields, ['phone', 'Phone']) || '',
-      company: getField(fields, ['company', 'Company', 'Company / Industry', 'company_industry']) || '',
-      instagram: getField(fields, ['instagram', 'Instagram', 'Instagram / Social', 'social']) || ''
+      fullName: pickField(fields, ['name', 'Full Name', 'fullName', 'full_name', 'full-name', 'Name']),
+      email: pickField(fields, ['email', 'Email', '_replyto']),
+      phone: pickField(fields, ['phone', 'Phone', 'tel', 'telephone']),
+      company: pickField(fields, ['company', 'Company', 'Company / Industry', 'company_industry', 'industry']),
+      instagram: pickField(fields, ['instagram', 'Instagram', 'Instagram / Social', 'social', 'ig'])
     };
 
-    // Clean up
-    data.fullName = data.fullName.toString().trim();
-    data.email = data.email.toString().trim().toLowerCase();
-    data.phone = data.phone.toString().trim();
-    data.company = data.company.toString().trim();
-    data.instagram = data.instagram.toString().trim().replace(/^@/, '');
-
-    if (!data.email) {
-      return new Response('Missing email', { status: 400 });
-    }
-
-    // 1. Save to Airtable
-    const airtableRes = await fetch(
-      `https://api.airtable.com/v0/${env.AIRTABLE_BASE_ID}/${encodeURIComponent(env.AIRTABLE_TABLE_NAME)}`,
-      {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${env.AIRTABLE_TOKEN}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          fields: {
-            'Full Name': data.fullName,
-            'Email': data.email,
-            'Phone': data.phone,
-            'Company / Industry': data.company,
-            'Instagram': data.instagram,
-            'Source': 'Web Application',
-            'Status': 'Pending'
-          }
-        })
-      }
-    );
-
-    if (!airtableRes.ok) {
-      const errText = await airtableRes.text();
-      console.error('Airtable error:', errText);
-    }
-
-    // 2. Send confirmation email via Resend
-    const emailHtml = buildConfirmationEmail(data.fullName);
-    const resendRes = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${env.RESEND_API_KEY}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        from: env.FROM_EMAIL || 'Château Privé <onboarding@resend.dev>',
-        to: data.email,
-        subject: 'Application received',
-        html: emailHtml,
-        reply_to: env.REPLY_TO_EMAIL || 'hallo@theflori.com'
-      })
+    // Clean values
+    Object.keys(data).forEach(k => {
+      data[k] = (data[k] || '').toString().trim();
     });
+    if (data.instagram) data.instagram = data.instagram.replace(/^@/, '');
+    if (data.email) data.email = data.email.toLowerCase();
 
-    if (!resendRes.ok) {
-      const errText = await resendRes.text();
-      console.error('Resend error:', errText);
+    // Always respond 200 to Formspree, even on partial errors
+    // Otherwise Formspree marks the webhook as broken
+    const errors = [];
+
+    // 1. Save to Airtable (only if we have at least an email)
+    if (data.email) {
+      try {
+        const airtableRes = await fetch(
+          `https://api.airtable.com/v0/${env.AIRTABLE_BASE_ID}/${encodeURIComponent(env.AIRTABLE_TABLE_NAME)}`,
+          {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${env.AIRTABLE_TOKEN}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              fields: {
+                'Full Name': data.fullName,
+                'Email': data.email,
+                'Phone': data.phone,
+                'Company / Industry': data.company,
+                'Instagram': data.instagram,
+                'Source': 'Web Application',
+                'Status': 'Pending'
+              }
+            })
+          }
+        );
+        if (!airtableRes.ok) {
+          const errText = await airtableRes.text();
+          console.error('Airtable error:', airtableRes.status, errText);
+          errors.push('airtable');
+        }
+      } catch (e) {
+        console.error('Airtable fetch failed:', e.message);
+        errors.push('airtable-fetch');
+      }
+    } else {
+      console.warn('No email found in payload — skipping Airtable + email');
+      errors.push('no-email');
     }
 
-    return new Response(JSON.stringify({ ok: true }), {
+    // 2. Send confirmation email
+    if (data.email) {
+      try {
+        const emailHtml = buildConfirmationEmail(data.fullName);
+        const resendRes = await fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${env.RESEND_API_KEY}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            from: env.FROM_EMAIL || 'Château Privé <onboarding@resend.dev>',
+            to: data.email,
+            subject: 'Application received',
+            html: emailHtml,
+            reply_to: env.REPLY_TO_EMAIL || 'hallo@theflori.com'
+          })
+        });
+        if (!resendRes.ok) {
+          const errText = await resendRes.text();
+          console.error('Resend error:', resendRes.status, errText);
+          errors.push('resend');
+        }
+      } catch (e) {
+        console.error('Resend fetch failed:', e.message);
+        errors.push('resend-fetch');
+      }
+    }
+
+    // Always return 200 so Formspree is happy
+    return new Response(JSON.stringify({
+      ok: true,
+      processed: !!data.email,
+      errors: errors,
+      received: Object.keys(fields)
+    }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' }
     });
 
   } catch (e) {
-    console.error('Webhook error:', e);
-    return new Response(JSON.stringify({ error: 'Internal error', message: e.message }), {
-      status: 500,
+    console.error('Webhook fatal error:', e.message, e.stack);
+    // Return 200 even on fatal errors so Formspree doesn't disable the webhook
+    return new Response(JSON.stringify({
+      ok: false,
+      error: e.message
+    }), {
+      status: 200,
       headers: { 'Content-Type': 'application/json' }
     });
   }
 }
 
+// GET handler — useful for debugging "is the worker alive"
+export async function onRequestGet() {
+  return new Response(JSON.stringify({
+    ok: true,
+    message: 'Webhook is alive. Send POST requests here.'
+  }), {
+    status: 200,
+    headers: { 'Content-Type': 'application/json' }
+  });
+}
+
 // Helper: try multiple field names to find the value
-function getField(obj, keys) {
+function pickField(obj, keys) {
+  if (!obj || typeof obj !== 'object') return '';
   for (const key of keys) {
     if (obj[key] !== undefined && obj[key] !== null && obj[key] !== '') {
       return obj[key];
+    }
+  }
+  // Try case-insensitive match as fallback
+  const lowerKeys = keys.map(k => k.toLowerCase());
+  for (const objKey of Object.keys(obj)) {
+    if (lowerKeys.includes(objKey.toLowerCase())) {
+      const value = obj[objKey];
+      if (value !== undefined && value !== null && value !== '') return value;
     }
   }
   return '';
