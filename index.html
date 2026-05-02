@@ -4,10 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Château Privé · Private Invitation · Cannes 2026</title>
-<meta name="description" content="Château Privé — An intimate evening during the Cannes Film Festival. Access by approval only.">
+<meta name="description" content="Château Privé — An intimate evening during the Cannes Film Festival, at a private castle close to the Croisette. Access by approval only.">
 
 <meta property="og:title" content="Château Privé · Private Invitation">
-<meta property="og:description" content="An intimate evening during Cannes Film Festival. Access is limited and subject to confirmation.">
+<meta property="og:description" content="An intimate evening during the Cannes Film Festival, at a private castle close to the Croisette.">
 <meta property="og:image" content="castle.jpg">
 <meta property="og:type" content="website">
 
@@ -348,6 +348,13 @@
   }
   .field__input::placeholder { color: var(--ink-faint); opacity: 0.5; }
 
+  .privacy__link {
+    color: inherit;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-thickness: 1px;
+  }
+  .privacy__link:hover { color: var(--gold); }
   .privacy {
     display: flex;
     align-items: flex-start;
@@ -367,6 +374,8 @@
     line-height: 1.4;
   }
   .privacy.is-error + .privacy__error { display: block; }
+  .privacy__error[data-for] { display: none; }
+  .privacy.is-error + .privacy__error[data-for] { display: block; }
   .privacy__box {
     flex-shrink: 0;
     width: 18px; height: 18px;
@@ -576,7 +585,7 @@
     <div class="hero__eyebrow"><sup>79</sup>th Cannes Film Festival</div>
     <h1 class="hero__title">Château Privé</h1>
     <div class="hero__sub" style="font-size: 1px">Private Invitation <span class="dot"></span> Cannes 2026</div>
-    <p class="hero__intro">An intimate evening during the Cannes Film Festival.<br>Access is limited and subject to confirmation.</p>
+    <p class="hero__intro">An intimate evening during the Cannes Film Festival,<br>at a private castle close to the Croisette.</p>
     <a href="#rsvp" class="hero__cta">
       <span>Request Access</span>
       <span class="hero__cta-arrow" aria-hidden="true">↓</span>
@@ -594,8 +603,8 @@
         <li><span class="rules__num">02</span><span class="rules__text">No plus ones</span></li>
         <li><span class="rules__num">03</span><span class="rules__text">RSVP confirmation required</span></li>
         <li><span class="rules__num">04</span><span class="rules__text">ID check at entrance</span></li>
-        <li><span class="rules__num">05</span><span class="rules__text">No guaranteed access after 7 PM</span></li>
-        <li><span class="rules__num">06</span><span class="rules__text">Late arrival may be denied</span></li>
+        <li><span class="rules__num">05</span><span class="rules__text">Entry strictly subject to capacity</span></li>
+        <li><span class="rules__num">06</span><span class="rules__text">Dress code: Glamour Chic</span></li>
       </ul>
     </div>
   </div>
@@ -607,7 +616,7 @@
     <div class="rsvp__head">
       <div class="rsvp__eyebrow">Request Access</div>
       <h2 class="rsvp__title">Request Access</h2>
-      <p class="rsvp__intro">Due to limited capacity, an estimated 99% of requests will be declined.</p>
+      <p class="rsvp__intro">Due to limited capacity, submission does not guarantee admission.</p>
     </div>
 
     <form class="form" id="rsvpForm" action="https://formspree.io/f/xojrqvgr" method="POST" novalidate="">
@@ -639,18 +648,25 @@
         <input class="field__input" type="text" id="company" name="company">
       </div>
 
-      <label class="privacy" id="privacy">
+      <label class="privacy" id="privacyAge">
         <span class="privacy__box" aria-hidden="true"></span>
-        <input type="checkbox" id="privacyCheck" name="privacy_accepted" style="position:absolute;opacity:0;pointer-events:none;">
+        <input type="checkbox" id="privacyAgeCheck" name="age_confirmed" style="position:absolute;opacity:0;pointer-events:none;">
         <span class="privacy__text">I confirm that I am 21 years or older and will present a valid physical photo ID at the entrance.</span>
       </label>
-      <div class="privacy__error">Please confirm the privacy notice to continue.</div>
+      <div class="privacy__error" data-for="privacyAge">Please confirm the age requirement to continue.</div>
+
+      <label class="privacy" id="privacyTerms">
+        <span class="privacy__box" aria-hidden="true"></span>
+        <input type="checkbox" id="privacyTermsCheck" name="terms_accepted" style="position:absolute;opacity:0;pointer-events:none;">
+        <span class="privacy__text">I accept the <a href="terms.html" target="_blank" rel="noopener" class="privacy__link">Terms &amp; Conditions</a> and acknowledge that photos and videos may be taken during the event.</span>
+      </label>
+      <div class="privacy__error" data-for="privacyTerms">Please accept the Terms &amp; Conditions to continue.</div>
 
       <button class="submit" type="submit" id="submitBtn">
         <span class="submit__label">Submit Request</span>
       </button>
 
-      <p class="disclaimer">All requests are subject to review.<br>Confirmed guests will receive a separate access confirmation.</p>
+      <p class="disclaimer">Confirmed guests will receive a separate confirmation with event details. Management reserves the right to refuse entry.</p>
     </form>
 
     <div class="success" id="success">
@@ -688,14 +704,23 @@
   window.addEventListener('scroll', onScroll, { passive: true });
   onScroll();
 
-  const privacy = document.getElementById('privacy');
-  const privacyCheck = document.getElementById('privacyCheck');
-  privacy.addEventListener('click', (e) => {
-    if (e.target === privacyCheck) return;
-    e.preventDefault();
-    privacyCheck.checked = !privacyCheck.checked;
-    privacy.classList.toggle('checked', privacyCheck.checked);
-  });
+  const privacyAge = document.getElementById('privacyAge');
+  const privacyAgeCheck = document.getElementById('privacyAgeCheck');
+  const privacyTerms = document.getElementById('privacyTerms');
+  const privacyTermsCheck = document.getElementById('privacyTermsCheck');
+
+  function wirePrivacy(label, check) {
+    label.addEventListener('click', (e) => {
+      if (e.target === check) return;
+      if (e.target.tagName === 'A') return;
+      e.preventDefault();
+      check.checked = !check.checked;
+      label.classList.toggle('checked', check.checked);
+      if (check.checked) label.classList.remove('is-error');
+    });
+  }
+  wirePrivacy(privacyAge, privacyAgeCheck);
+  wirePrivacy(privacyTerms, privacyTermsCheck);
 
   const form = document.getElementById('rsvpForm');
   const submitBtn = document.getElementById('submitBtn');
@@ -737,12 +762,7 @@
     });
   });
 
-  // Privacy revalidation on toggle
-  privacy.addEventListener('click', () => {
-    setTimeout(() => {
-      if (privacyCheck.checked) privacy.classList.remove('is-error');
-    }, 0);
-  });
+  // Privacy revalidation handled in wirePrivacy
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -753,11 +773,17 @@
       if (!ok && validators[fieldEl.dataset.field] && !firstInvalid) firstInvalid = fieldEl;
     });
 
-    if (!privacyCheck.checked) {
-      privacy.classList.add('is-error');
-      if (!firstInvalid) firstInvalid = privacy;
+    if (!privacyAgeCheck.checked) {
+      privacyAge.classList.add('is-error');
+      if (!firstInvalid) firstInvalid = privacyAge;
     } else {
-      privacy.classList.remove('is-error');
+      privacyAge.classList.remove('is-error');
+    }
+    if (!privacyTermsCheck.checked) {
+      privacyTerms.classList.add('is-error');
+      if (!firstInvalid) firstInvalid = privacyTerms;
+    } else {
+      privacyTerms.classList.remove('is-error');
     }
 
     if (firstInvalid) {

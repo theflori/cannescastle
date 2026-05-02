@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Terms &amp; Conditions · Château Privé</title>
+<meta name="description" content="Terms and Conditions for Château Privé, a private invitation-only evening during the Cannes Film Festival 2026.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=EB+Garamond:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream:#F1ECDF;
+    --paper:#FBF7EC;
+    --paper-deep:#F4EEDF;
+    --ink:#1A1612;
+    --ink-soft:#3a342c;
+    --muted:#8a8270;
+    --gold:#B8965A;
+    --gold-light:#d4b884;
+    --hairline: rgba(26,22,18,0.14);
+    --hairline-strong: rgba(26,22,18,0.28);
+    --display: 'Cormorant Garamond', Georgia, serif;
+    --body: 'EB Garamond', Georgia, serif;
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--body);
+    font-size: 17px;
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  a { color: inherit; }
+
+  /* ============== TOP BAR ============== */
+  .topbar {
+    border-bottom: 1px solid var(--hairline);
+    background: var(--paper);
+  }
+  .topbar__inner {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 22px 32px;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 24px;
+  }
+  .topbar__brand {
+    font-family: var(--display);
+    font-style: italic;
+    font-weight: 400;
+    font-size: 22px;
+    color: var(--gold);
+    text-decoration: none;
+    letter-spacing: -0.01em;
+  }
+  .topbar__back {
+    font-family: var(--body);
+    font-size: 11px;
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-decoration: none;
+    transition: color 0.2s ease;
+  }
+  .topbar__back:hover { color: var(--ink); }
+
+  /* ============== MASTHEAD ============== */
+  .masthead {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 88px 32px 48px;
+  }
+  .eyebrow {
+    font-family: var(--body);
+    font-size: 11px;
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 0 0 18px;
+  }
+  .h1 {
+    font-family: var(--display);
+    font-style: italic;
+    font-weight: 300;
+    font-size: clamp(48px, 6vw, 76px);
+    line-height: 1.05;
+    letter-spacing: -0.01em;
+    margin: 0 0 14px;
+    color: var(--ink);
+  }
+  .meta {
+    font-family: var(--body);
+    font-size: 13px;
+    color: var(--muted);
+    letter-spacing: 0.04em;
+    margin: 0;
+  }
+  .rule {
+    width: 60px;
+    height: 1px;
+    background: var(--gold);
+    border: 0;
+    margin: 56px 0 48px;
+  }
+
+  /* ============== TOC ============== */
+  .toc {
+    max-width: 720px;
+    margin: 0 auto 64px;
+    padding: 0 32px;
+  }
+  .toc__inner {
+    background: var(--paper-deep);
+    border-top: 1px solid var(--hairline);
+    border-bottom: 1px solid var(--hairline);
+    padding: 28px 32px;
+  }
+  .toc__head {
+    font-family: var(--body);
+    font-size: 11px;
+    letter-spacing: 0.36em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 0 0 18px;
+  }
+  .toc__list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    columns: 2;
+    column-gap: 32px;
+  }
+  .toc__list li {
+    margin: 0 0 8px;
+    break-inside: avoid;
+  }
+  .toc__list a {
+    font-size: 14px;
+    color: var(--ink-soft);
+    text-decoration: none;
+    display: flex;
+    gap: 10px;
+    line-height: 1.5;
+  }
+  .toc__list a:hover { color: var(--gold); }
+  .toc__num {
+    color: var(--gold);
+    font-family: var(--body);
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    min-width: 22px;
+    flex-shrink: 0;
+  }
+
+  /* ============== BODY ============== */
+  .body {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 0 32px 80px;
+  }
+  .section {
+    padding: 32px 0;
+    border-top: 1px solid var(--hairline);
+  }
+  .section:last-child { border-bottom: 1px solid var(--hairline); }
+  .section__num {
+    font-family: var(--body);
+    font-size: 11px;
+    letter-spacing: 0.36em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin: 0 0 8px;
+  }
+  .section__title {
+    font-family: var(--display);
+    font-style: italic;
+    font-weight: 300;
+    font-size: 30px;
+    line-height: 1.15;
+    margin: 0 0 20px;
+    color: var(--ink);
+    letter-spacing: -0.005em;
+  }
+  .section p {
+    margin: 0 0 14px;
+    color: var(--ink-soft);
+  }
+  .section p:last-child { margin-bottom: 0; }
+  .section ul, .section ol {
+    margin: 0 0 16px;
+    padding-left: 22px;
+  }
+  .section li {
+    margin-bottom: 8px;
+    color: var(--ink-soft);
+  }
+  .section strong {
+    color: var(--ink);
+    font-weight: 500;
+  }
+
+  /* Highlight callout */
+  .callout {
+    background: var(--paper-deep);
+    border-left: 2px solid var(--gold);
+    padding: 22px 24px;
+    margin: 18px 0;
+    font-style: italic;
+    font-family: var(--display);
+    font-size: 18px;
+    line-height: 1.6;
+    color: var(--ink);
+  }
+
+  /* ============== FOOTER ============== */
+  .footer {
+    background: #0F0C09;
+    color: rgba(241,236,223,0.8);
+    padding: 56px 32px 40px;
+    text-align: center;
+  }
+  .footer__brand {
+    font-family: var(--display);
+    font-style: italic;
+    font-weight: 400;
+    font-size: 22px;
+    color: var(--gold-light);
+    margin-bottom: 10px;
+  }
+  .footer__lines {
+    font-family: var(--body);
+    font-size: 11px;
+    color: rgba(241,236,223,0.55);
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    line-height: 1.8;
+  }
+  .footer__divider {
+    width: 36px;
+    height: 1px;
+    background: rgba(241,236,223,0.18);
+    margin: 28px auto;
+  }
+  .footer__copy {
+    font-family: var(--body);
+    font-size: 10px;
+    color: rgba(241,236,223,0.4);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+
+  @media (max-width: 600px) {
+    .masthead { padding: 64px 22px 36px; }
+    .toc { padding: 0 22px; }
+    .toc__list { columns: 1; }
+    .body { padding: 0 22px 64px; }
+    .section { padding: 28px 0; }
+    .topbar__inner { padding: 18px 22px; }
+    .h1 { font-size: 44px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<header class="topbar">
+  <div class="topbar__inner">
+    <a class="topbar__brand" href="index.html">Château Privé</a>
+    <a class="topbar__back" href="index.html">&larr; Back to invitation</a>
+  </div>
+</header>
+
+<!-- MASTHEAD -->
+<section class="masthead">
+  <p class="eyebrow">Legal</p>
+  <h1 class="h1">Terms &amp; Conditions</h1>
+  <p class="meta">Last updated: May 2026 &middot; Cannes &middot; MMXXVI</p>
+  <hr class="rule">
+  <p style="font-family: var(--display); font-style: italic; font-weight: 300; font-size: 22px; line-height: 1.55; color: var(--ink-soft); margin: 0;">
+    These Terms &amp; Conditions govern application to and attendance at Château Privé, a private invitation-only evening hosted during the 79<sup style="font-size: 0.6em;">th</sup> Cannes Film Festival. Please read them carefully before submitting your request.
+  </p>
+</section>
+
+<!-- TOC -->
+<nav class="toc" aria-label="Sections">
+  <div class="toc__inner">
+    <p class="toc__head">Contents</p>
+    <ul class="toc__list">
+      <li><a href="#s1"><span class="toc__num">01</span><span>Definitions</span></a></li>
+      <li><a href="#s2"><span class="toc__num">02</span><span>Application &amp; Approval</span></a></li>
+      <li><a href="#s3"><span class="toc__num">03</span><span>Eligibility &amp; Identification</span></a></li>
+      <li><a href="#s4"><span class="toc__num">04</span><span>Personal Invitation</span></a></li>
+      <li><a href="#s5"><span class="toc__num">05</span><span>Capacity &amp; Entry</span></a></li>
+      <li><a href="#s6"><span class="toc__num">06</span><span>Dress Code</span></a></li>
+      <li><a href="#s7"><span class="toc__num">07</span><span>Photo &amp; Video Consent</span></a></li>
+      <li><a href="#s8"><span class="toc__num">08</span><span>Confidentiality &amp; Discretion</span></a></li>
+      <li><a href="#s9"><span class="toc__num">09</span><span>Conduct &amp; Removal</span></a></li>
+      <li><a href="#s10"><span class="toc__num">10</span><span>Alcohol &amp; Substances</span></a></li>
+      <li><a href="#s11"><span class="toc__num">11</span><span>Health &amp; Safety</span></a></li>
+      <li><a href="#s12"><span class="toc__num">12</span><span>Liability</span></a></li>
+      <li><a href="#s13"><span class="toc__num">13</span><span>Force Majeure</span></a></li>
+      <li><a href="#s14"><span class="toc__num">14</span><span>Data Protection</span></a></li>
+      <li><a href="#s15"><span class="toc__num">15</span><span>Cancellation &amp; Changes</span></a></li>
+      <li><a href="#s16"><span class="toc__num">16</span><span>Governing Law</span></a></li>
+      <li><a href="#s17"><span class="toc__num">17</span><span>Contact</span></a></li>
+    </ul>
+  </div>
+</nav>
+
+<!-- BODY -->
+<main class="body">
+
+  <section class="section" id="s1">
+    <p class="section__num">Section 01</p>
+    <h2 class="section__title">Definitions</h2>
+    <p>"Event" refers to <strong>Château Privé</strong>, a private invitation-only evening held in May 2026 at a private venue close to the Croisette in Cannes, France.</p>
+    <p>"Host" refers to the organising party of the Event, including its representatives, partners, and venue operators.</p>
+    <p>"Guest" refers to any person who has submitted an application or has been confirmed for attendance.</p>
+    <p>"Applicant" refers to any person who has submitted a request for access via the official application form.</p>
+  </section>
+
+  <section class="section" id="s2">
+    <p class="section__num">Section 02</p>
+    <h2 class="section__title">Application &amp; Approval</h2>
+    <p>Submission of an application via the official form does not constitute an invitation, a contract, or any guarantee of admission. All applications are reviewed personally by the Host on a discretionary, case-by-case basis.</p>
+    <p>The Host reserves the right to approve, decline, or revoke any application at any time, without obligation to provide a reason. Decisions are final.</p>
+    <p>Confirmed Guests will receive a separate written confirmation by email containing the date, location, and arrival details. <strong>An application alone, or any prior communication other than the explicit written confirmation, does not entitle a person to entry.</strong></p>
+  </section>
+
+  <section class="section" id="s3">
+    <p class="section__num">Section 03</p>
+    <h2 class="section__title">Eligibility &amp; Identification</h2>
+    <p>Attendance is restricted to persons who are <strong>21 years of age or older</strong> at the date of the Event.</p>
+    <p>A valid <strong>physical photo identification document</strong> (passport, national identity card, or government-issued driver's licence) must be presented at the entrance for verification. Digital copies, screenshots, or photographs of identification are <strong>not</strong> accepted.</p>
+    <p>Without valid identification matching the name on the confirmation, entry will be refused without compensation or alternative arrangement.</p>
+  </section>
+
+  <section class="section" id="s4">
+    <p class="section__num">Section 04</p>
+    <h2 class="section__title">Personal Invitation</h2>
+    <p>Invitations are <strong>personal and non-transferable</strong>. They may not be sold, exchanged, given away, or otherwise transferred to any third party.</p>
+    <p>Plus ones, additional companions, or guests of guests are <strong>not</strong> permitted unless explicitly confirmed in writing by the Host in advance of the Event.</p>
+    <p>Any attempt to transfer an invitation will result in immediate revocation of access.</p>
+  </section>
+
+  <section class="section" id="s5">
+    <p class="section__num">Section 05</p>
+    <h2 class="section__title">Capacity &amp; Entry</h2>
+    <p>The Event has a strictly limited capacity. Entry is granted on a confirmation basis up to the venue's safe capacity.</p>
+    <p><strong>Management reserves the right to refuse entry</strong> at its sole and absolute discretion, including but not limited to reasons of capacity, conduct, dress, intoxication, identification, or security concerns.</p>
+    <p>The Host accepts no liability and offers no compensation in the event entry is refused, regardless of prior confirmation.</p>
+  </section>
+
+  <section class="section" id="s6">
+    <p class="section__num">Section 06</p>
+    <h2 class="section__title">Dress Code</h2>
+    <p>The dress code for the Event is <strong>Glamour Chic</strong>. Guests are expected to dress in keeping with the tone of an intimate evening at a private estate.</p>
+    <p>Casual or beachwear, athletic wear, branded streetwear, and visibly inappropriate attire are not permitted. Guests not adhering to the dress code may be denied entry at the discretion of the Host.</p>
+  </section>
+
+  <section class="section" id="s7">
+    <p class="section__num">Section 07</p>
+    <h2 class="section__title">Photo &amp; Video Consent</h2>
+    <p>By attending the Event, the Guest acknowledges and consents that photographs, video footage, and audio recordings <strong>may be taken</strong> during the Event by the Host, contracted media partners, or other authorised parties.</p>
+    <p>The Guest grants the Host and its partners a <strong>perpetual, worldwide, royalty-free, non-exclusive licence</strong> to use, reproduce, edit, distribute, and display such media, in whole or in part, for editorial, archival, promotional, and marketing purposes, in any medium now known or later developed, without further consent or compensation.</p>
+    <p><strong>Attendance at the Event implies consent to the foregoing.</strong> Guests who do not wish to appear in photographs or video are kindly asked to refrain from attending.</p>
+    <p>Personal photography by Guests is permitted in moderation; however, the publication of photographs identifying other Guests, staff, or the venue without their consent is strictly prohibited.</p>
+  </section>
+
+  <section class="section" id="s8">
+    <p class="section__num">Section 08</p>
+    <h2 class="section__title">Confidentiality &amp; Discretion</h2>
+    <p>The Event is private. The invitation, the venue address, the guest list, and any details disclosed in connection with the Event are <strong>confidential</strong>.</p>
+    <p>Guests agree not to share, post, forward, or publish, on social media or elsewhere, any of the following without the Host's prior written consent:</p>
+    <ul>
+      <li>The exact location or address of the venue</li>
+      <li>Identifying details of other Guests</li>
+      <li>Photographs or videos depicting other Guests, staff, or the interior of the venue in a way that identifies the location</li>
+      <li>The application link or any access details intended for personal use</li>
+    </ul>
+    <p>Breach of confidentiality may result in immediate removal from the Event and exclusion from future events.</p>
+  </section>
+
+  <section class="section" id="s9">
+    <p class="section__num">Section 09</p>
+    <h2 class="section__title">Conduct &amp; Removal</h2>
+    <p>Guests are expected to conduct themselves with discretion, civility, and respect for fellow Guests, staff, performers, and the venue.</p>
+    <p>The following behaviour is grounds for immediate removal from the Event without refund or recourse:</p>
+    <ul>
+      <li>Harassment, abuse, or aggression toward any person</li>
+      <li>Damage to the venue or its furnishings</li>
+      <li>Theft or attempted theft</li>
+      <li>Possession or use of illegal substances</li>
+      <li>Conduct deemed by the Host, in its sole discretion, to be inappropriate or detrimental to the Event</li>
+    </ul>
+  </section>
+
+  <section class="section" id="s10">
+    <p class="section__num">Section 10</p>
+    <h2 class="section__title">Alcohol &amp; Substances</h2>
+    <p>Alcohol may be served at the Event in accordance with French law. Guests consume alcohol at their own discretion and responsibility.</p>
+    <p>The Host reserves the right to refuse service or refuse entry to any Guest who appears intoxicated or whose behaviour is impaired.</p>
+    <p>The possession, use, or supply of any controlled or illegal substances on the premises is strictly prohibited and will result in immediate removal and, where applicable, notification of the relevant authorities.</p>
+  </section>
+
+  <section class="section" id="s11">
+    <p class="section__num">Section 11</p>
+    <h2 class="section__title">Health &amp; Safety</h2>
+    <p>Guests with medical conditions, allergies, or specific dietary requirements are encouraged to inform the Host in advance, although accommodation cannot be guaranteed.</p>
+    <p>Guests attend the Event at their own risk. Guests are responsible for their own personal belongings; the Host accepts no liability for loss, theft, or damage to personal property.</p>
+    <p>Smoking is permitted only in designated outdoor areas. Open flames, fireworks, and other hazardous items brought by Guests are prohibited.</p>
+  </section>
+
+  <section class="section" id="s12">
+    <p class="section__num">Section 12</p>
+    <h2 class="section__title">Liability</h2>
+    <p>To the fullest extent permitted by applicable law, the Host, its partners, contractors, and venue operators accept no liability for any direct, indirect, incidental, or consequential loss, damage, or personal injury arising from or in connection with attendance at the Event.</p>
+    <p>Nothing in these Terms excludes or limits liability for death or personal injury caused by negligence, for fraudulent misrepresentation, or for any other liability that cannot be excluded under applicable French law.</p>
+  </section>
+
+  <section class="section" id="s13">
+    <p class="section__num">Section 13</p>
+    <h2 class="section__title">Force Majeure</h2>
+    <p>The Host shall not be liable for any failure or delay in performing its obligations under these Terms where such failure or delay results from circumstances beyond its reasonable control, including but not limited to acts of God, war, terrorism, civil unrest, government order, public health emergency, fire, flood, severe weather, strike, or interruption of utilities.</p>
+    <p>In such circumstances, the Host may postpone, relocate, or cancel the Event without liability.</p>
+  </section>
+
+  <section class="section" id="s14">
+    <p class="section__num">Section 14</p>
+    <h2 class="section__title">Data Protection</h2>
+    <p>Personal data submitted through the application form (including name, email, phone, social handle, and company / industry where provided) is collected and processed solely for the purposes of:</p>
+    <ul>
+      <li>Reviewing and managing the application</li>
+      <li>Communicating with the Applicant about the status of the application and, where confirmed, the Event itself</li>
+      <li>Maintaining a guest list and entry verification on the night</li>
+      <li>Internal record-keeping and security</li>
+    </ul>
+    <p>Data is stored securely and is not sold, rented, or shared with third parties unrelated to the Event. Data may be processed by service providers (such as form processing, email, and CRM tools) acting on behalf of the Host under appropriate confidentiality obligations.</p>
+    <p>Under applicable data protection law (including the EU General Data Protection Regulation), Guests have the right to access, correct, or request deletion of their personal data, subject to lawful retention requirements. Such requests may be made by contacting the Host (see Section 17).</p>
+    <p>Personal data will be retained only for as long as necessary for the purposes described above, and ordinarily not longer than 24 months following the Event, unless a longer retention period is required by law.</p>
+  </section>
+
+  <section class="section" id="s15">
+    <p class="section__num">Section 15</p>
+    <h2 class="section__title">Cancellation &amp; Changes</h2>
+    <p>The Host reserves the right to amend these Terms or to change the date, time, location, programme, or any other details of the Event at any time and at its sole discretion.</p>
+    <p>Material changes affecting confirmed Guests will be communicated by email to the address provided in the application. It is the Guest's responsibility to ensure that contact details remain current.</p>
+    <p>The Event may be cancelled by the Host without compensation. As attendance is by invitation and free of charge, no refund obligation arises.</p>
+  </section>
+
+  <section class="section" id="s16">
+    <p class="section__num">Section 16</p>
+    <h2 class="section__title">Governing Law</h2>
+    <p>These Terms &amp; Conditions, and any dispute or claim arising from or in connection with them or the Event, are governed by the laws of <strong>France</strong>.</p>
+    <p>The courts of Cannes / Grasse shall have exclusive jurisdiction to settle any such dispute or claim, save where mandatory consumer protection law provides otherwise.</p>
+  </section>
+
+  <section class="section" id="s17">
+    <p class="section__num">Section 17</p>
+    <h2 class="section__title">Contact</h2>
+    <p>Questions, requests relating to data protection, or any other matters concerning these Terms &amp; Conditions or the Event should be addressed to the Host by reply to any email received in connection with the application.</p>
+    <p>By submitting an application, the Applicant confirms that they have read, understood, and accept these Terms &amp; Conditions in full.</p>
+  </section>
+
+</main>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer__brand">Château Privé</div>
+  <div class="footer__lines">Cannes &middot; MMXXVI &middot; Privately Hosted</div>
+  <div class="footer__divider" aria-hidden="true"></div>
+  <div class="footer__copy">&copy; 2026 Fraimit. All rights reserved.</div>
+</footer>
+
+</body>
+</html>
