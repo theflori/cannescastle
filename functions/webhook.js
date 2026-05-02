@@ -1,7 +1,7 @@
 // Cloudflare Pages Function: POST /webhook
 // Receives webhook from Formspree
 // 1. Saves to Airtable
-// 2. Sends custom HTML confirmation email via Brevo
+// 2. Sends custom HTML confirmation email via Resend
 
 export async function onRequestPost({ request, env }) {
   try {
@@ -80,36 +80,32 @@ export async function onRequestPost({ request, env }) {
       errors.push('no-email');
     }
 
-    // 2. Send confirmation email via Brevo
+    // 2. Send confirmation email via Resend
     if (data.email) {
       try {
         const emailHtml = buildConfirmationEmail(data.fullName);
-        const brevoRes = await fetch('https://api.brevo.com/v3/smtp/email', {
+        const resendRes = await fetch('https://api.resend.com/emails', {
           method: 'POST',
           headers: {
-            'api-key': env.BREVO_API_KEY,
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
+            'Authorization': `Bearer ${env.RESEND_API_KEY}`,
+            'Content-Type': 'application/json'
           },
           body: JSON.stringify({
-            sender: {
-              name: env.SENDER_NAME || 'Château Privé',
-              email: env.SENDER_EMAIL
-            },
-            to: [{ email: data.email, name: data.fullName }],
+            from: env.FROM_EMAIL || 'Château Privé <onboarding@resend.dev>',
+            to: data.email,
             subject: 'Your request has been received',
-            htmlContent: emailHtml,
-            replyTo: { email: env.REPLY_TO_EMAIL || env.SENDER_EMAIL }
+            html: emailHtml,
+            reply_to: env.REPLY_TO_EMAIL || 'events@fraimit.com'
           })
         });
-        if (!brevoRes.ok) {
-          const errText = await brevoRes.text();
-          console.error('Brevo error:', brevoRes.status, errText);
-          errors.push('brevo');
+        if (!resendRes.ok) {
+          const errText = await resendRes.text();
+          console.error('Resend error:', resendRes.status, errText);
+          errors.push('resend');
         }
       } catch (e) {
-        console.error('Brevo fetch failed:', e.message);
-        errors.push('brevo-fetch');
+        console.error('Resend fetch failed:', e.message);
+        errors.push('resend-fetch');
       }
     }
 
