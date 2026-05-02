@@ -1,7 +1,7 @@
 // Cloudflare Pages Function: POST /webhook
-// Receives webhook from Formspree on every form submission
+// Receives webhook from Formspree
 // 1. Saves to Airtable
-// 2. Sends custom HTML confirmation email via Resend
+// 2. Sends custom HTML confirmation email via Brevo
 
 export async function onRequestPost({ request, env }) {
   try {
@@ -77,36 +77,39 @@ export async function onRequestPost({ request, env }) {
         errors.push('airtable-fetch');
       }
     } else {
-      console.warn('No email found in payload — skipping Airtable + email');
       errors.push('no-email');
     }
 
-    // 2. Send confirmation email
+    // 2. Send confirmation email via Brevo
     if (data.email) {
       try {
         const emailHtml = buildConfirmationEmail(data.fullName);
-        const resendRes = await fetch('https://api.resend.com/emails', {
+        const brevoRes = await fetch('https://api.brevo.com/v3/smtp/email', {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${env.RESEND_API_KEY}`,
-            'Content-Type': 'application/json'
+            'api-key': env.BREVO_API_KEY,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
           },
           body: JSON.stringify({
-            from: env.FROM_EMAIL || 'Château Privé <onboarding@resend.dev>',
-            to: data.email,
-            subject: 'Your application has been received',
-            html: emailHtml,
-            reply_to: env.REPLY_TO_EMAIL || 'hallo@theflori.com'
+            sender: {
+              name: env.SENDER_NAME || 'Château Privé',
+              email: env.SENDER_EMAIL
+            },
+            to: [{ email: data.email, name: data.fullName }],
+            subject: 'Your request has been received',
+            htmlContent: emailHtml,
+            replyTo: { email: env.REPLY_TO_EMAIL || env.SENDER_EMAIL }
           })
         });
-        if (!resendRes.ok) {
-          const errText = await resendRes.text();
-          console.error('Resend error:', resendRes.status, errText);
-          errors.push('resend');
+        if (!brevoRes.ok) {
+          const errText = await brevoRes.text();
+          console.error('Brevo error:', brevoRes.status, errText);
+          errors.push('brevo');
         }
       } catch (e) {
-        console.error('Resend fetch failed:', e.message);
-        errors.push('resend-fetch');
+        console.error('Brevo fetch failed:', e.message);
+        errors.push('brevo-fetch');
       }
     }
 
@@ -121,7 +124,7 @@ export async function onRequestPost({ request, env }) {
     });
 
   } catch (e) {
-    console.error('Webhook fatal error:', e.message, e.stack);
+    console.error('Webhook fatal error:', e.message);
     return new Response(JSON.stringify({
       ok: false,
       error: e.message
@@ -170,7 +173,7 @@ function buildConfirmationEmail(fullName) {
 <meta name="x-apple-disable-message-reformatting" />
 <meta name="color-scheme" content="dark" />
 <meta name="supported-color-schemes" content="dark" />
-<title>Your application has been received — Château Privé</title>
+<title>Your request has been received — Château Privé</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=EB+Garamond:wght@400;500&display=swap" rel="stylesheet">
@@ -186,7 +189,7 @@ body { margin: 0; padding: 0; }
 </head>
 <body style="margin:0; padding:0; background-color:#0F0C09; font-family:'EB Garamond', Georgia, 'Times New Roman', serif; color:#F1ECDF;">
 <div style="display:none; max-height:0; overflow:hidden; mso-hide:all; font-size:1px; line-height:1px; color:#0F0C09;">
-Your application has been received. We'll respond within 72 hours.
+Your request has been received. We'll notify you once a decision has been made.
 </div>
 
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#0F0C09" style="background-color:#0F0C09;">
@@ -210,7 +213,7 @@ Your application has been received. We'll respond within 72 hours.
 <td class="px-48 py-72" align="center" style="padding:72px 48px 56px 48px;">
 
 <p style="margin:0 0 24px 0; font-family:'EB Garamond', Georgia, serif; font-size:11px; color:rgba(241,236,223,0.65); letter-spacing:4px; text-transform:uppercase;">
-Application Received
+Request Received
 </p>
 
 <h1 class="h1" style="margin:0 0 28px 0; font-family:'Cormorant Garamond', Georgia, serif; font-style:italic; font-weight:300; font-size:72px; line-height:1; color:#d4b884; letter-spacing:-0.5px;">
@@ -222,16 +225,16 @@ Thank you.
 </table>
 
 <p style="margin:0 0 20px 0; font-family:'EB Garamond', Georgia, serif; font-size:18px; line-height:1.6; color:#F1ECDF; text-align:left;">
-Dear ${name},
+Hi ${name},
 </p>
 <p style="margin:0 0 20px 0; font-family:'EB Garamond', Georgia, serif; font-size:17px; line-height:1.65; color:rgba(241,236,223,0.78); text-align:left;">
-Your application has been received.
+Thank you for your request.
 </p>
 <p style="margin:0 0 20px 0; font-family:'EB Garamond', Georgia, serif; font-size:17px; line-height:1.65; color:rgba(241,236,223,0.78); text-align:left;">
-Applications are reviewed personally. You will hear from us within 72 hours by email &mdash; whether your invitation is confirmed or not.
+Your submission is currently under review. Due to limited capacity, access is curated and not guaranteed.
 </p>
 <p style="margin:0; font-family:'EB Garamond', Georgia, serif; font-size:17px; line-height:1.65; color:rgba(241,236,223,0.78); text-align:left;">
-Until then, no follow-up needed.
+We will notify you once a final decision has been made.
 </p>
 
 <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:48px auto 0 auto;">
@@ -239,8 +242,8 @@ Until then, no follow-up needed.
 </table>
 
 <p style="margin:0; font-family:'Cormorant Garamond', Georgia, serif; font-style:italic; font-weight:300; font-size:22px; line-height:1.4; color:#F1ECDF;">
-Warm regards,<br/>
-<span style="color:rgba(241,236,223,0.55);">The Hosts</span>
+Best regards,<br/>
+<span style="color:rgba(241,236,223,0.55);">Guest Management Team</span>
 </p>
 
 </td>
