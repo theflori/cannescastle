@@ -95,7 +95,7 @@ export async function onRequestPost({ request, env }) {
             to: data.email,
             subject: 'Your Cannes RSVP has been received',
             html: emailHtml,
-            reply_to: env.REPLY_TO_EMAIL || 'events@fraimit.com'
+            reply_to: env.REPLY_TO_EMAIL || 'rsvp@fraimit.com'
           })
         });
         if (!resendRes.ok) {
