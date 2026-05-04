@@ -93,7 +93,7 @@ export async function onRequestPost({ request, env }) {
           body: JSON.stringify({
             from: env.FROM_EMAIL || 'Château Cannes <rsvp@fraimit.com>',
             to: data.email,
-            subject: 'Your Cannes RSVP is confirmed',
+            subject: 'Your Cannes RSVP has been received',
             html: emailHtml,
             reply_to: env.REPLY_TO_EMAIL || 'events@fraimit.com'
           })
@@ -169,7 +169,7 @@ function buildConfirmationEmail(fullName) {
 <meta name="x-apple-disable-message-reformatting" />
 <meta name="color-scheme" content="dark" />
 <meta name="supported-color-schemes" content="dark" />
-<title>Your Cannes RSVP is confirmed — Château Cannes</title>
+<title>Your Cannes RSVP has been received — Château Cannes</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=EB+Garamond:wght@400;500&display=swap" rel="stylesheet">
@@ -185,7 +185,7 @@ body { margin: 0; padding: 0; }
 </head>
 <body style="margin:0; padding:0; background-color:#0F0C09; font-family:'EB Garamond', Georgia, 'Times New Roman', serif; color:#F1ECDF;">
 <div style="display:none; max-height:0; overflow:hidden; mso-hide:all; font-size:1px; line-height:1px; color:#0F0C09;">
-Your Cannes RSVP is confirmed. We'll follow up with event details soon.
+Your Cannes RSVP has been received. We'll follow up with event details soon.
 </div>
 
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#0F0C09" style="background-color:#0F0C09;">
@@ -209,7 +209,7 @@ Your Cannes RSVP is confirmed. We'll follow up with event details soon.
 <td class="px-48 py-72" align="center" style="padding:72px 48px 56px 48px;">
 
 <p style="margin:0 0 24px 0; font-family:'EB Garamond', Georgia, serif; font-size:11px; color:rgba(241,236,223,0.65); letter-spacing:4px; text-transform:uppercase;">
-RSVP Confirmed
+RSVP Received
 </p>
 
 <h1 class="h1" style="margin:0 0 28px 0; font-family:'Cormorant Garamond', Georgia, serif; font-style:italic; font-weight:300; font-size:72px; line-height:1; color:#d4b884; letter-spacing:-0.5px;">
