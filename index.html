@@ -475,14 +475,60 @@
     line-height: 1.6;
   }
 
+  /* ============== SPONSORS ============== */
+  .sponsors {
+    padding: 64px 0 64px;
+    text-align: center;
+    background: rgba(26, 22, 18, 0.04);
+  }
+  .sponsors__inner {
+    max-width: 720px;
+  }
+  .sponsors__divider {
+    width: 40px;
+    height: 1px;
+    background: var(--gold);
+    margin: 0 auto 24px;
+    opacity: 0.6;
+  }
+  .sponsors__eyebrow {
+    font-family: var(--body);
+    font-size: 11px;
+    color: var(--gold-deep);
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+  .sponsors__body {
+    font-family: var(--body);
+    font-style: italic;
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--ink-soft);
+    max-width: 560px;
+    margin: 0 auto;
+  }
+  .sponsors__link {
+    color: var(--gold-deep);
+    text-decoration: none;
+    border-bottom: 1px solid rgba(184,150,90,0.35);
+    transition: color 0.2s ease, border-color 0.2s ease;
+  }
+  .sponsors__link:hover {
+    color: var(--gold);
+    border-bottom-color: var(--gold);
+  }
+  @media (max-width: 720px) {
+    .sponsors { padding: 48px 0 48px; }
+    .sponsors__body { font-size: 14px; }
+  }
+
   /* ============== FOOTER ============== */
   .footer {
     text-align: center;
     padding: 64px 0 48px;
     background: #0F0C09;
     color: rgba(241,236,223,0.9);
-    margin-top: 24px;
-    border-top: 1px solid var(--hairline);
     position: relative; z-index: 2;
   }
   .footer__inner {
@@ -579,7 +625,7 @@
     <span class="nav__divider" aria-hidden="true"></span>
     <div class="nav__label">Private Invitation</div>
   </div>
-  <div class="nav__meta">Cannes · MMXXVI</div>
+  <div class="nav__meta">15 May 2026 · Cannes</div>
 </nav>
 
 <!-- HERO -->
@@ -589,7 +635,7 @@
   <div class="hero__inner">
     <div class="hero__eyebrow"><sup>79</sup>th Cannes Film Festival</div>
     <h1 class="hero__title">Château Privé</h1>
-    <div class="hero__sub" style="font-size: 1px">Private Invitation <span class="dot"></span> Cannes 2026</div>
+    <div class="hero__sub">15 May 2026 <span class="dot"></span> Cannes</div>
     <p class="hero__intro">An intimate evening during the Cannes Film Festival,<br>at a private castle close to the Croisette.</p>
     <a href="#rsvp" class="hero__cta">
       <span>Request Access</span>
@@ -682,6 +728,17 @@
   </div>
 </section>
 
+<!-- SPONSORS / PARTNERSHIPS -->
+<section class="sponsors">
+  <div class="container sponsors__inner">
+    <div class="sponsors__divider" aria-hidden="true"></div>
+    <div class="sponsors__eyebrow">Partnerships &amp; Access</div>
+    <p class="sponsors__body">
+      For sponsorship inquiries, guaranteed access, or VIP rooms inside the castle, please reach out to <a href="mailto:rsvp@fraimit.com" class="sponsors__link">rsvp@fraimit.com</a>
+    </p>
+  </div>
+</section>
+
 <!-- FOOTER -->
 <footer class="footer">
   <div class="container footer__inner">
@@ -692,7 +749,7 @@
     <div class="footer__divider" aria-hidden="true"></div>
     <div class="footer__credit">
       <span class="footer__credit-label">Hosted by</span>
-      <a href="https://fraimit.com" target="_blank" rel="noopener" class="footer__credit-link">
+      <a href="https://fraimit.com/" target="_blank" rel="noopener" class="footer__credit-link">
         <img src="fraimit-logo-white.png" alt="Fraimit" class="footer__logo" />
       </a>
     </div>
