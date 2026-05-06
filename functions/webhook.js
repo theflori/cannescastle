@@ -32,7 +32,8 @@ export async function onRequestPost({ request, env }) {
       email: pickField(fields, ['email', 'Email', '_replyto']),
       phone: pickField(fields, ['phone', 'Phone', 'tel', 'telephone']),
       company: pickField(fields, ['company', 'Company', 'Company / Industry', 'company_industry', 'industry']),
-      instagram: pickField(fields, ['instagram', 'Instagram', 'Instagram / Social', 'social', 'ig'])
+      instagram: pickField(fields, ['instagram', 'Instagram', 'Instagram / Social', 'social', 'ig']),
+      referredBy: pickField(fields, ['referred_by', 'referredBy', 'Referred By', 'Invited By', 'invited_by', 'referral'])
     };
 
     Object.keys(data).forEach(k => {
@@ -61,6 +62,7 @@ export async function onRequestPost({ request, env }) {
                 'Phone': data.phone,
                 'Company / Industry': data.company,
                 'Instagram': data.instagram,
+                'Referred By': data.referredBy,
                 'Source': 'Web Application',
                 'Status': 'Pending'
               }
