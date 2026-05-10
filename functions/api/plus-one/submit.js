@@ -1,4 +1,4 @@
-// deploy-marker 1778406072
+// deploy-marker 1778410127
 // POST /api/plus-one/submit
 // Body: { id, firstName, lastName, email, phone }
 //
@@ -28,10 +28,19 @@ export async function onRequestPost(context) {
   let body;
   try { body = await request.json(); } catch { return jsonError('Invalid JSON', 400); }
 
-  const { id, firstName, lastName, email, phone } = body;
+  const { id, firstName, lastName, instagram, email, phone } = body;
   if (!id || !id.startsWith('rec')) return jsonError('Invalid id', 400);
   if (!firstName || !lastName) return jsonError('First and last name required', 400);
+  if (!instagram || typeof instagram !== 'string' || instagram.trim().length === 0) {
+    return jsonError('Instagram handle required', 400);
+  }
   if (!email || !email.includes('@')) return jsonError('Valid email required', 400);
+
+  // Clean Instagram handle defensively (frontend already strips, but double-check)
+  const cleanInstagram = String(instagram).trim()
+    .replace(/^@/, '')
+    .replace(/^https?:\/\/(www\.)?instagram\.com\//i, '')
+    .replace(/\/$/, '');
 
   try {
     const primary = await airtableGet(env, id);
@@ -50,6 +59,7 @@ export async function onRequestPost(context) {
       'Full Name': fullName,
       'Email': email,
       'Phone': normalizedPhone,
+      'Instagram': cleanInstagram,
       'Status': 'Approved',
       'Messaging Status': 'Approved',
       'Source': 'Plus-One',

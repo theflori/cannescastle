@@ -1,4 +1,4 @@
-<!-- deploy-marker 1778406072 -->
+<!-- deploy-marker 1778410127 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -71,6 +71,12 @@
     color:#F1ECDF;padding:4px 0;
   }
   input::placeholder{color:rgba(241,236,223,0.3)}
+  .ig-input{display:flex;align-items:center;gap:6px}
+  .ig-prefix{
+    font-family:'EB Garamond',Georgia,serif;font-size:16px;
+    color:rgba(241,236,223,0.5);user-select:none;
+  }
+  .ig-input input{flex:1}
   button[type="submit"]{
     width:100%;border:none;background:#B8965A;color:#0F0C09;
     padding:16px 20px;font-family:'EB Garamond',Georgia,serif;
@@ -117,6 +123,13 @@
         <div class="field">
           <label>Last name</label>
           <input type="text" id="lastName" required autocomplete="family-name" maxlength="60">
+        </div>
+      </div>
+      <div class="field">
+        <label>Instagram</label>
+        <div class="ig-input">
+          <span class="ig-prefix">@</span>
+          <input type="text" id="instagram" required autocomplete="off" maxlength="60" placeholder="handle">
         </div>
       </div>
       <div class="field">
@@ -189,15 +202,17 @@
     btn.disabled = true;
     btn.innerHTML = '<span class="spinner"></span>Sending…';
 
+    const igRaw = document.getElementById('instagram').value.trim();
     const payload = {
       id,
       firstName: document.getElementById('firstName').value.trim(),
       lastName: document.getElementById('lastName').value.trim(),
+      instagram: igRaw.replace(/^@/, '').replace(/^https?:\/\/(www\.)?instagram\.com\//i, '').replace(/\/$/, ''),
       email: document.getElementById('email').value.trim(),
       phone: document.getElementById('phone').value.trim()
     };
 
-    if (!payload.firstName || !payload.lastName || !payload.email) {
+    if (!payload.firstName || !payload.lastName || !payload.instagram || !payload.email) {
       errEl.textContent = 'Please fill in all required fields.';
       btn.disabled = false;
       btn.textContent = 'Send invitation';
