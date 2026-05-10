@@ -1,0 +1,228 @@
+<!-- deploy-marker 1778406072 -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Château Privé · Add a person</title>
+<meta name="robots" content="noindex,nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=EB+Garamond:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{
+    background:#0F0C09;color:#F1ECDF;
+    font-family:'EB Garamond',Georgia,serif;
+    min-height:100vh;display:flex;align-items:flex-start;justify-content:center;
+    padding:32px 24px;-webkit-font-smoothing:antialiased;
+  }
+  .card{
+    background:#1A1612;
+    border:1px solid rgba(241,236,223,0.12);
+    max-width:520px;width:100%;
+    padding:48px 40px;
+  }
+  .brand{
+    font-family:'Cormorant Garamond',Georgia,serif;font-style:italic;
+    font-size:24px;color:#d4b884;margin-bottom:6px;text-align:center;
+  }
+  .brand-meta{
+    font-size:10px;letter-spacing:3px;text-transform:uppercase;
+    color:rgba(241,236,223,0.55);text-align:center;margin-bottom:48px;
+  }
+  .eyebrow{
+    font-family:'EB Garamond',Georgia,serif;
+    font-size:11px;letter-spacing:4px;text-transform:uppercase;
+    color:rgba(241,236,223,0.65);margin-bottom:18px;text-align:center;
+  }
+  h1{
+    font-family:'Cormorant Garamond',Georgia,serif;
+    font-style:italic;font-weight:300;font-size:48px;
+    color:#d4b884;line-height:1;margin-bottom:24px;
+    letter-spacing:-0.5px;text-align:center;
+  }
+  .divider{width:60px;height:1px;background:#B8965A;margin:0 auto 32px}
+  .lead{
+    font-size:15px;color:rgba(241,236,223,0.78);
+    line-height:1.65;margin-bottom:8px;text-align:center;
+  }
+  .lead strong{color:#F1ECDF;font-weight:400}
+  .helper{
+    font-size:13px;color:rgba(241,236,223,0.55);
+    margin-bottom:36px;text-align:center;
+    padding-bottom:32px;border-bottom:1px solid rgba(241,236,223,0.1);
+  }
+  .row{display:flex;gap:14px}
+  .row > .field{flex:1}
+  .field{
+    margin-bottom:18px;
+    border-bottom:1px solid rgba(241,236,223,0.18);
+    padding-bottom:8px;transition:border-color 0.2s;
+  }
+  .field:focus-within{border-bottom-color:#d4b884}
+  label{
+    display:block;font-size:10px;letter-spacing:2px;text-transform:uppercase;
+    color:rgba(241,236,223,0.55);margin-bottom:6px;
+  }
+  input{
+    width:100%;border:none;outline:none;background:transparent;
+    font-family:'EB Garamond',Georgia,serif;font-size:16px;
+    color:#F1ECDF;padding:4px 0;
+  }
+  input::placeholder{color:rgba(241,236,223,0.3)}
+  button[type="submit"]{
+    width:100%;border:none;background:#B8965A;color:#0F0C09;
+    padding:16px 20px;font-family:'EB Garamond',Georgia,serif;
+    font-size:11px;letter-spacing:3px;text-transform:uppercase;font-weight:500;
+    cursor:pointer;transition:background 0.2s;margin-top:20px;
+  }
+  button[type="submit"]:hover:not(:disabled){background:#d4b884}
+  button[type="submit"]:disabled{opacity:0.5;cursor:not-allowed}
+  .error{margin-top:16px;font-size:13px;color:#c47466;min-height:18px;text-align:center}
+  .icon-state{font-family:Georgia,serif;font-size:48px;color:#d4b884;text-align:center;margin-bottom:16px}
+  .icon-error{color:#c47466}
+  .spinner{
+    display:inline-block;width:12px;height:12px;
+    border:2px solid rgba(15,12,9,0.3);border-top-color:#0F0C09;
+    border-radius:50%;animation:spin 0.7s linear infinite;
+    margin-right:8px;vertical-align:-1px;
+  }
+  @keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<div class="card">
+  <div class="brand">Château Privé</div>
+  <div class="brand-meta">Cannes · MMXXVI</div>
+
+  <div id="state-loading">
+    <h1>Loading…</h1>
+  </div>
+
+  <div id="state-form" style="display:none">
+    <div class="eyebrow">Plus-one</div>
+    <h1>Add a person.</h1>
+    <div class="divider"></div>
+    <p class="lead" id="leadLine">Verifying your invitation…</p>
+    <p class="helper">One additional person. They'll receive their own confirmation email.</p>
+
+    <form id="form">
+      <div class="row">
+        <div class="field">
+          <label>First name</label>
+          <input type="text" id="firstName" required autocomplete="given-name" maxlength="60">
+        </div>
+        <div class="field">
+          <label>Last name</label>
+          <input type="text" id="lastName" required autocomplete="family-name" maxlength="60">
+        </div>
+      </div>
+      <div class="field">
+        <label>Email</label>
+        <input type="email" id="email" required autocomplete="email" maxlength="120">
+      </div>
+      <div class="field">
+        <label>Phone (with country code)</label>
+        <input type="tel" id="phone" placeholder="+49…" autocomplete="tel" maxlength="30">
+      </div>
+      <button type="submit" id="submitBtn">Send invitation</button>
+      <div class="error" id="error"></div>
+    </form>
+  </div>
+
+  <div id="state-success" style="display:none">
+    <div class="icon-state">&#10003;</div>
+    <div class="eyebrow">Sent</div>
+    <h1>Invitation sent.</h1>
+    <div class="divider"></div>
+    <p class="lead" id="successLine">We've sent the confirmation to your guest.</p>
+    <p class="helper" style="border:none;margin-top:24px;font-style:italic">— Château Privé</p>
+  </div>
+
+  <div id="state-already" style="display:none">
+    <div class="eyebrow">Already used</div>
+    <h1>Plus-one added.</h1>
+    <div class="divider"></div>
+    <p class="lead">You've already added a guest. Each invitation allows one plus-one only.</p>
+    <p class="helper" style="border:none">If something needs changing, please contact the host directly.</p>
+  </div>
+
+  <div id="state-invalid" style="display:none">
+    <div class="icon-state icon-error">!</div>
+    <div class="eyebrow">Link invalid</div>
+    <h1>Link expired.</h1>
+    <div class="divider"></div>
+    <p class="lead">This link doesn't appear to be valid. If you believe this is an error, please contact the host directly.</p>
+  </div>
+</div>
+
+<script>
+  const params = new URLSearchParams(window.location.search);
+  const id = params.get('id');
+
+  function show(stateId) {
+    ['state-loading','state-form','state-success','state-already','state-invalid'].forEach(s => {
+      document.getElementById(s).style.display = s === stateId ? '' : 'none';
+    });
+  }
+
+  async function init() {
+    if (!id) { show('state-invalid'); return; }
+    try {
+      const res = await fetch('/api/plus-one/lookup?id=' + encodeURIComponent(id));
+      const data = await res.json();
+      if (!res.ok || !data.ok) { show('state-invalid'); return; }
+      if (data.alreadyUsed) { show('state-already'); return; }
+      document.getElementById('leadLine').innerHTML =
+        'You\'re adding a guest to <strong>' + (data.primaryName || 'your invitation') + '</strong>.';
+      show('state-form');
+    } catch (err) { show('state-invalid'); }
+  }
+
+  document.getElementById('form').addEventListener('submit', async e => {
+    e.preventDefault();
+    const errEl = document.getElementById('error');
+    const btn = document.getElementById('submitBtn');
+    errEl.textContent = '';
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span>Sending…';
+
+    const payload = {
+      id,
+      firstName: document.getElementById('firstName').value.trim(),
+      lastName: document.getElementById('lastName').value.trim(),
+      email: document.getElementById('email').value.trim(),
+      phone: document.getElementById('phone').value.trim()
+    };
+
+    if (!payload.firstName || !payload.lastName || !payload.email) {
+      errEl.textContent = 'Please fill in all required fields.';
+      btn.disabled = false;
+      btn.textContent = 'Send invitation';
+      return;
+    }
+
+    try {
+      const res = await fetch('/api/plus-one/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed');
+      document.getElementById('successLine').textContent =
+        'A confirmation has been sent to ' + payload.email + '.';
+      show('state-success');
+    } catch (err) {
+      errEl.textContent = err.message;
+      btn.disabled = false;
+      btn.textContent = 'Send invitation';
+    }
+  });
+
+  init();
+</script>
+</body>
+</html>
