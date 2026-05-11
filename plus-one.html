@@ -1,4 +1,4 @@
-<!-- deploy-marker 1778410127 -->
+<!-- deploy-marker 1778491289 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -77,6 +77,67 @@
     color:rgba(241,236,223,0.5);user-select:none;
   }
   .ig-input input{flex:1}
+
+  /* Share Section */
+  .share-section{
+    background:#231D17;
+    border:1px solid rgba(184,150,90,0.25);
+    padding:20px;
+    margin-bottom:28px;
+  }
+  .share-label{
+    font-family:'EB Garamond',Georgia,serif;
+    font-size:10px;letter-spacing:3px;text-transform:uppercase;
+    color:#d4b884;margin-bottom:12px;text-align:center;
+  }
+  .share-row{
+    display:flex;gap:8px;align-items:stretch;
+  }
+  #shareUrl{
+    flex:1;background:rgba(15,12,9,0.5);
+    border:1px solid rgba(241,236,223,0.1);
+    color:rgba(241,236,223,0.85);
+    padding:10px 12px;font-size:13px;
+    font-family:'EB Garamond',Georgia,serif;
+    border-radius:2px;outline:none;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  }
+  #shareUrl:focus{border-color:rgba(212,184,132,0.4)}
+  .btn-copy{
+    display:flex;align-items:center;gap:6px;
+    background:#B8965A;color:#0F0C09;
+    border:none;padding:0 16px;
+    font-family:'EB Garamond',Georgia,serif;
+    font-size:11px;letter-spacing:2px;text-transform:uppercase;font-weight:500;
+    cursor:pointer;transition:background 0.2s;
+    border-radius:2px;
+  }
+  .btn-copy:hover{background:#d4b884}
+  .btn-copy.copied{background:#4a7c59;color:#F1ECDF}
+  .btn-copy svg{width:14px;height:14px}
+  .btn-share{
+    width:100%;margin-top:10px;
+    display:flex;align-items:center;justify-content:center;gap:8px;
+    background:transparent;border:1px solid rgba(212,184,132,0.4);
+    color:#d4b884;padding:12px;border-radius:2px;
+    font-family:'EB Garamond',Georgia,serif;
+    font-size:11px;letter-spacing:2px;text-transform:uppercase;
+    cursor:pointer;transition:all 0.2s;
+  }
+  .btn-share:hover{border-color:#d4b884;background:rgba(212,184,132,0.05)}
+  .btn-share svg{width:14px;height:14px}
+
+  /* OR Divider */
+  .or-divider{
+    display:flex;align-items:center;gap:16px;
+    margin:0 0 24px;color:rgba(241,236,223,0.4);
+  }
+  .or-divider::before,.or-divider::after{
+    content:"";flex:1;height:1px;background:rgba(241,236,223,0.1);
+  }
+  .or-divider span{
+    font-size:10px;letter-spacing:3px;text-transform:uppercase;
+  }
   button[type="submit"]{
     width:100%;border:none;background:#B8965A;color:#0F0C09;
     padding:16px 20px;font-family:'EB Garamond',Georgia,serif;
@@ -109,10 +170,29 @@
 
   <div id="state-form" style="display:none">
     <div class="eyebrow">Plus-one</div>
-    <h1>Add a person.</h1>
+    <h1>Bring a guest.</h1>
     <div class="divider"></div>
     <p class="lead" id="leadLine">Verifying your invitation…</p>
-    <p class="helper">One additional person. They'll receive their own confirmation email.</p>
+    <p class="helper">You can either share this page with the person you'd like to bring &mdash; they'll fill in their own details &mdash; or add them yourself below.</p>
+
+    <!-- SHARE SECTION -->
+    <div class="share-section">
+      <div class="share-label">Share this page</div>
+      <div class="share-row">
+        <input type="text" id="shareUrl" readonly>
+        <button type="button" id="copyBtn" class="btn-copy" aria-label="Copy link">
+          <svg id="copyIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          <svg id="checkIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="display:none"><polyline points="20 6 9 17 4 12"/></svg>
+          <span id="copyLabel">Copy</span>
+        </button>
+      </div>
+      <button type="button" id="shareBtn" class="btn-share" style="display:none">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+        Share
+      </button>
+    </div>
+
+    <div class="or-divider"><span>or fill in yourself</span></div>
 
     <form id="form">
       <div class="row">
@@ -190,9 +270,62 @@
       if (data.alreadyUsed) { show('state-already'); return; }
       document.getElementById('leadLine').innerHTML =
         'You\'re adding a guest to <strong>' + (data.primaryName || 'your invitation') + '</strong>.';
+
+      // Fill share URL with the current page URL
+      document.getElementById('shareUrl').value = window.location.href;
+
+      // Show native Share button on mobile (where Web Share API is supported)
+      if (navigator.share) {
+        document.getElementById('shareBtn').style.display = 'flex';
+      }
+
       show('state-form');
     } catch (err) { show('state-invalid'); }
   }
+
+  // Copy button
+  document.getElementById('copyBtn').addEventListener('click', async () => {
+    const url = document.getElementById('shareUrl').value;
+    const btn = document.getElementById('copyBtn');
+    const copyIcon = document.getElementById('copyIcon');
+    const checkIcon = document.getElementById('checkIcon');
+    const label = document.getElementById('copyLabel');
+
+    try {
+      await navigator.clipboard.writeText(url);
+    } catch {
+      // Fallback for older browsers
+      const ta = document.createElement('textarea');
+      ta.value = url; document.body.appendChild(ta); ta.select();
+      try { document.execCommand('copy'); } catch {}
+      document.body.removeChild(ta);
+    }
+
+    btn.classList.add('copied');
+    copyIcon.style.display = 'none';
+    checkIcon.style.display = '';
+    label.textContent = 'Copied';
+
+    setTimeout(() => {
+      btn.classList.remove('copied');
+      copyIcon.style.display = '';
+      checkIcon.style.display = 'none';
+      label.textContent = 'Copy';
+    }, 2000);
+  });
+
+  // Native Share button (mobile)
+  document.getElementById('shareBtn').addEventListener('click', async () => {
+    try {
+      await navigator.share({
+        title: 'Château Privé — your invitation',
+        text: 'You\'re invited to Château Privé. Add your details here:',
+        url: window.location.href
+      });
+    } catch (err) {
+      // User cancelled or error - silently ignore
+    }
+  });
 
   document.getElementById('form').addEventListener('submit', async e => {
     e.preventDefault();
