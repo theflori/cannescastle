@@ -1,12 +1,15 @@
-// deploy-marker 1778434324
+// deploy-marker 1778504055
 // POST /api/plus-one/submit
-// Body: { id, firstName, lastName, email, phone }
+// Body: { id, firstName, lastName, instagram, email, phone }
 //
+// NEW FLOW (Plus-One is NOT auto-confirmed):
 // 1. Validate primary, ensure not already used
-// 2. Create new record (Approved + Plus One Of = primary)
-// 3. Generate decline code for new record
-// 4. Mark primary as Plus One Used
-// 5. Send welcome email + SMS to plus-one
+// 2. Create new record with Messaging Status = "Listed" (not Approved!)
+// 3. Generate an Interest Code (uses Decline Code field as the entry token)
+// 4. Mark primary as Plus One Used (sperrt sofort)
+// 5. Send RECOMMENDATION email + SMS (NOT a confirmation)
+// 6. Plus-one clicks the link -> /confirm-interest -> status becomes Semi Approved
+// 7. Host manually clicks Confirm & Send -> status becomes Approved + welcome email
 
 import {
   airtableGet, airtablePatch, airtableCreate,
@@ -36,7 +39,6 @@ export async function onRequestPost(context) {
   }
   if (!email || !email.includes('@')) return jsonError('Valid email required', 400);
 
-  // Clean Instagram handle defensively (frontend already strips, but double-check)
   const cleanInstagram = String(instagram).trim()
     .replace(/^@/, '')
     .replace(/^https?:\/\/(www\.)?instagram\.com\//i, '')
@@ -54,31 +56,32 @@ export async function onRequestPost(context) {
     const fullName = `${firstName} ${lastName}`.trim();
     const normalizedPhone = normalizePhone(phone);
 
-    // Create plus-one record (auto-approved)
+    // Generate Interest Code (uses Decline Code field as the code storage)
+    const interestCode = await generateUniqueCode(env, 'Decline Code');
+
+    // Create plus-one record — NOT auto-approved.
+    // Starts as Listed; will move to Semi Approved when they click the link.
     const newRecord = await airtableCreate(env, {
       'Full Name': fullName,
       'Email': email,
       'Phone': normalizedPhone,
       'Instagram': cleanInstagram,
-      'Status': 'Approved',
-      'Messaging Status': 'Approved',
+      'Status': 'Pending',
+      'Messaging Status': 'Listed',
       'Source': 'Plus-One',
       'Plus One Of': [id],
+      'Decline Code': interestCode,
       'Last Message Sent At': new Date().toISOString()
     });
     const newId = newRecord.id;
 
-    // Generate decline code for plus-one
-    const declineCode = await generateUniqueCode(env, 'Decline Code');
-    await airtablePatch(env, newId, { 'Decline Code': declineCode });
-
-    // Mark primary as plus-one-used
+    // Lock primary so they can't add another plus-one
     await airtablePatch(env, id, { 'Plus One Used': true });
 
-    // Send welcome email
+    // Send RECOMMENDATION email
     let emailSent = false;
     try {
-      const emailContent = renderPlusOneWelcomeEmail({ name: fullName, primaryName, declineCode });
+      const emailContent = renderRecommendationEmail({ name: fullName, primaryName, interestCode });
       await sendEmail(env, {
         to: email,
         subject: emailContent.subject,
@@ -87,18 +90,18 @@ export async function onRequestPost(context) {
       });
       emailSent = true;
     } catch (err) {
-      console.error('Plus-one email failed:', err.message);
+      console.error('Plus-one recommendation email failed:', err.message);
     }
 
-    // Send SMS
+    // Send RECOMMENDATION sms
     let smsSent = false;
     if (normalizedPhone && env.TWILIO_ACCOUNT_SID) {
       try {
-        const smsBody = renderPlusOneWelcomeSms({ name: fullName, primaryName, declineCode });
+        const smsBody = renderRecommendationSms({ name: fullName, primaryName, interestCode });
         await sendSms(env, { to: normalizedPhone, body: smsBody });
         smsSent = true;
       } catch (err) {
-        console.error('Plus-one SMS failed:', err.message);
+        console.error('Plus-one recommendation SMS failed:', err.message);
       }
     }
 
@@ -108,23 +111,26 @@ export async function onRequestPost(context) {
   }
 }
 
-// ============== EMAIL/SMS TEMPLATES (inline because cannescastle doesn't share templates.js) ==============
+// ============== RECOMMENDATION EMAIL ==============
+// Tells the plus-one: "[Primary] recommended you. Click to express interest."
+// They are NOT yet confirmed.
 
-function renderPlusOneWelcomeEmail({ name, primaryName, declineCode }) {
+function renderRecommendationEmail({ name, primaryName, interestCode }) {
   const firstName = (name || '').split(' ')[0] || 'there';
-  const subject = "You are confirmed — Château Privé · 15 May 2026";
-  const declineUrl = shortUrl(declineCode);
+  const subject = `${primaryName} has recommended you — Château Privé · 15 May 2026`;
+  const confirmUrl = shortUrl(interestCode);
 
   const text = `Dear ${firstName},
 
-${primaryName} added you as their guest at Château Privé.
+${primaryName} has recommended you for Château Privé — a private evening during the 79th Cannes Film Festival.
 
 Friday, 15 May 2026 · Cannes Californie
-Doors at 17:00 — please be early.
 
-The exact address will be shared 24 hours before the event by SMS.
+This is not yet a confirmed invitation. If you'd like to attend, please click the link below to express your interest. We'll then review and get back to you.
 
-Can't attend? ${declineUrl}
+Express your interest: ${confirmUrl}
+
+If you don't wish to attend, no action is needed.
 
 — Château Privé
 `;
@@ -139,16 +145,16 @@ Can't attend? ${declineUrl}
 @media only screen and (max-width: 620px) {
   .container { width: 100% !important; }
   .px-40 { padding-left: 24px !important; padding-right: 24px !important; }
-  .h1 { font-size: 30px !important; line-height: 1.15 !important; }
+  .h1 { font-size: 28px !important; line-height: 1.18 !important; }
   .details td { font-size: 14px !important; }
   .details .lbl { width: 90px !important; padding-left: 20px !important; }
   .details .val { padding-right: 20px !important; }
-  .py-top { padding-top: 36px !important; padding-bottom: 28px !important; }
 }
 body { margin: 0; padding: 0; }
 </style>
 </head>
 <body style="margin:0;padding:0;background-color:#0F0C09;font-family:'EB Garamond',Georgia,serif;color:#F1ECDF">
+
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" bgcolor="#0F0C09" style="background-color:#0F0C09">
 <tr><td align="center" style="padding:32px 16px">
 <table role="presentation" class="container" width="600" cellpadding="0" cellspacing="0" style="width:600px;max-width:600px;background-color:#1A1612">
@@ -160,15 +166,18 @@ body { margin: 0; padding: 0; }
 </tr></table>
 </td></tr>
 
-<tr><td class="px-40 py-top" align="left" style="padding:40px 40px 28px">
-<p style="margin:0 0 10px;font-family:'EB Garamond',Georgia,serif;font-size:10px;color:rgba(241,236,223,0.55);letter-spacing:3px;text-transform:uppercase">Cannes &middot; 15 May 2026</p>
-<h1 class="h1" style="margin:0;font-family:'Cormorant Garamond',Georgia,serif;font-style:italic;font-weight:300;font-size:36px;line-height:1.1;color:#d4b884;letter-spacing:-0.3px">You are confirmed.</h1>
+<tr><td class="px-40" align="left" style="padding:40px 40px 24px">
+<p style="margin:0 0 10px;font-family:'EB Garamond',Georgia,serif;font-size:10px;color:#d4b884;letter-spacing:3px;text-transform:uppercase">You've been recommended</p>
+<h1 class="h1" style="margin:0;font-family:'Cormorant Garamond',Georgia,serif;font-style:italic;font-weight:300;font-size:34px;line-height:1.1;color:#d4b884;letter-spacing:-0.3px">A recommendation for you.</h1>
 </td></tr>
 
-<tr><td class="px-40" align="left" style="padding:0 40px 28px">
+<tr><td class="px-40" align="left" style="padding:0 40px 24px">
 <p style="margin:0 0 14px;font-family:'EB Garamond',Georgia,serif;font-size:16px;line-height:1.6;color:#F1ECDF">Dear ${escapeHtml(firstName)},</p>
-<p style="margin:0;font-family:'EB Garamond',Georgia,serif;font-size:16px;line-height:1.6;color:rgba(241,236,223,0.85)">
-<span style="color:#F1ECDF">${escapeHtml(primaryName)}</span> added you as their guest at <span style="color:#F1ECDF">Château Privé</span> &mdash; a private evening during the 79<sup style="font-size:10px">th</sup> Cannes Film Festival.
+<p style="margin:0 0 14px;font-family:'EB Garamond',Georgia,serif;font-size:16px;line-height:1.6;color:rgba(241,236,223,0.85)">
+<span style="color:#F1ECDF">${escapeHtml(primaryName)}</span> has recommended you for <span style="color:#F1ECDF">Château Privé</span> — a private evening during the 79<sup style="font-size:10px">th</sup> Cannes Film Festival.
+</p>
+<p style="margin:0;font-family:'EB Garamond',Georgia,serif;font-size:14px;line-height:1.6;color:rgba(241,236,223,0.65);font-style:italic">
+This is not yet a confirmed invitation. If you'd like to attend, please express your interest below — we'll then review and get back to you.
 </p>
 </td></tr>
 
@@ -183,22 +192,19 @@ body { margin: 0; padding: 0; }
 <td class="lbl" style="padding:16px 0 16px 24px;font-family:'EB Garamond',Georgia,serif;font-size:10px;color:rgba(241,236,223,0.55);letter-spacing:3px;text-transform:uppercase;vertical-align:top">Place</td>
 <td class="val" style="padding:16px 24px 16px 0;font-family:'EB Garamond',Georgia,serif;font-size:15px;color:#F1ECDF;line-height:1.5">Cannes Californie</td>
 </tr>
-<tr><td colspan="2" style="border-top:1px solid rgba(241,236,223,0.08);line-height:0;font-size:0">&nbsp;</td></tr>
-<tr>
-<td class="lbl" style="padding:16px 0 16px 24px;font-family:'EB Garamond',Georgia,serif;font-size:10px;color:rgba(241,236,223,0.55);letter-spacing:3px;text-transform:uppercase;vertical-align:top">Doors</td>
-<td class="val" style="padding:16px 24px 16px 0;font-family:'EB Garamond',Georgia,serif;font-size:15px;color:#F1ECDF;line-height:1.5"><strong style="color:#d4b884">17:00</strong> &mdash; please be early</td>
-</tr>
 </table>
 </td></tr>
 
-<tr><td class="px-40" align="center" style="padding:18px 40px 0">
-<p style="margin:0;font-family:'EB Garamond',Georgia,serif;font-size:12px;line-height:1.6;color:rgba(241,236,223,0.55);font-style:italic">The exact address will be shared 24 hours before the event by SMS.</p>
+<tr><td class="px-40" align="center" style="padding:32px 40px 0">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0">
+<tr><td bgcolor="#B8965A" style="background-color:#B8965A;border-radius:2px">
+<a href="${escapeHtml(confirmUrl)}" style="display:inline-block;padding:14px 32px;font-family:'EB Garamond',Georgia,serif;font-size:11px;color:#0F0C09;text-decoration:none;letter-spacing:3px;text-transform:uppercase;font-weight:500">Express your interest</a>
+</td></tr>
+</table>
 </td></tr>
 
-<tr><td class="px-40" align="center" style="padding:24px 40px 36px">
-<p style="margin:0;font-family:'EB Garamond',Georgia,serif;font-size:12px;color:rgba(241,236,223,0.55)">
-Can't attend? <a href="${escapeHtml(declineUrl)}" style="color:#d4b884;text-decoration:underline">Let us know</a>
-</p>
+<tr><td class="px-40" align="center" style="padding:18px 40px 36px">
+<p style="margin:0;font-family:'EB Garamond',Georgia,serif;font-size:12px;line-height:1.6;color:rgba(241,236,223,0.55);font-style:italic">If you don't wish to attend, no action is needed.</p>
 </td></tr>
 
 <tr><td align="center" class="px-40" style="padding:24px 40px 32px;border-top:1px solid rgba(241,236,223,0.12);background-color:#0F0C09">
@@ -210,7 +216,7 @@ Can't attend? <a href="${escapeHtml(declineUrl)}" style="color:#d4b884;text-deco
   return { subject, text, html };
 }
 
-function renderPlusOneWelcomeSms({ name, primaryName, declineCode }) {
+function renderRecommendationSms({ name, primaryName, interestCode }) {
   const firstName = (name || '').split(' ')[0] || '';
-  return `${firstName ? firstName + ', ' : ''}${primaryName} added you to Château Privé · 15 May · Cannes. Details in your email. Can't make it? ${shortUrl(declineCode)}`;
+  return `${firstName ? firstName + ', ' : ''}${primaryName} recommended you for Château Privé · 15 May · Cannes. If interested, tap: ${shortUrl(interestCode)}`;
 }

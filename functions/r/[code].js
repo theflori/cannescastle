@@ -1,6 +1,10 @@
-// deploy-marker 1778406072
+// deploy-marker 1778504055
 // GET /r/{code}
-// Looks up the code in Airtable, redirects to /decline?id={recordId} or /plus-one?id={recordId}
+// Routes the code based on the guest's current state:
+//   - Plus-One with Messaging Status = Listed AND Source = Plus-One
+//     → /confirm-interest?id=... (recommendation link)
+//   - Otherwise (Decline Code lookup) → /decline?id=...
+//   - Plus One Code lookup → /plus-one?id=...
 
 import { airtableGetByCode } from '../_lib/messaging-utils.js';
 
@@ -17,9 +21,23 @@ export async function onRequestGet(context) {
     if (!result) return notFoundHtml();
 
     const recordId = result.record.id;
-    const target = result.codeType === 'decline'
-      ? `/decline?id=${recordId}`
-      : `/plus-one?id=${recordId}`;
+    const f = result.record.fields || {};
+
+    let target;
+    if (result.codeType === 'plus-one') {
+      // Primary's plus-one invitation page
+      target = `/plus-one?id=${recordId}`;
+    } else if (
+      result.codeType === 'decline' &&
+      f['Messaging Status'] === 'Listed' &&
+      f['Source'] === 'Plus-One'
+    ) {
+      // Plus-one who hasn't yet expressed interest
+      target = `/confirm-interest?id=${recordId}`;
+    } else {
+      // Regular decline link
+      target = `/decline?id=${recordId}`;
+    }
 
     return Response.redirect(`https://${context.request.headers.get('host')}${target}`, 302);
   } catch (err) {

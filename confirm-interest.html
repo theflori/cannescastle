@@ -1,0 +1,179 @@
+<!-- deploy-marker confirm-interest-page-v1 -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Château Privé · Express your interest</title>
+<meta name="robots" content="noindex,nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=EB+Garamond:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{
+    background:#0F0C09;color:#F1ECDF;
+    font-family:'EB Garamond',Georgia,serif;
+    min-height:100vh;display:flex;align-items:center;justify-content:center;
+    padding:24px;-webkit-font-smoothing:antialiased;
+  }
+  .card{
+    background:#1A1612;
+    border:1px solid rgba(241,236,223,0.12);
+    max-width:480px;width:100%;
+    padding:48px 40px;text-align:center;
+  }
+  .brand{font-family:'Cormorant Garamond',Georgia,serif;font-style:italic;font-size:24px;color:#d4b884;margin-bottom:6px}
+  .brand-meta{font-size:10px;letter-spacing:3px;text-transform:uppercase;color:rgba(241,236,223,0.55);margin-bottom:48px}
+  .eyebrow{
+    font-family:'EB Garamond',Georgia,serif;
+    font-size:11px;letter-spacing:4px;text-transform:uppercase;
+    color:rgba(241,236,223,0.65);margin-bottom:18px;
+  }
+  h1{
+    font-family:'Cormorant Garamond',Georgia,serif;
+    font-style:italic;font-weight:300;font-size:42px;
+    color:#d4b884;line-height:1.1;margin-bottom:24px;
+    letter-spacing:-0.3px;
+  }
+  .divider{width:60px;height:1px;background:#B8965A;margin:0 auto 28px}
+  p{font-size:15px;color:rgba(241,236,223,0.78);line-height:1.65;margin-bottom:16px}
+  .lead{color:#F1ECDF}
+  .actions{display:flex;flex-direction:column;gap:12px;margin-top:32px}
+  button,.btn-link{
+    width:100%;border:none;padding:14px 20px;
+    font-family:'EB Garamond',Georgia,serif;
+    font-size:11px;letter-spacing:3px;text-transform:uppercase;
+    cursor:pointer;transition:all 0.2s;
+    text-decoration:none;display:inline-block;text-align:center;
+  }
+  .btn-confirm{background:#B8965A;color:#0F0C09;font-weight:500}
+  .btn-confirm:hover:not(:disabled){background:#d4b884}
+  .btn-confirm:disabled{opacity:0.5;cursor:not-allowed}
+  .icon-state{font-family:Georgia,serif;font-size:48px;color:#d4b884;margin-bottom:16px}
+  .icon-error{color:#c47466}
+  .spinner{
+    display:inline-block;width:14px;height:14px;
+    border:2px solid rgba(15,12,9,0.3);
+    border-top-color:#0F0C09;border-radius:50%;
+    animation:spin 0.8s linear infinite;
+    margin-right:8px;vertical-align:-2px;
+  }
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .note{font-size:13px;color:rgba(241,236,223,0.55);font-style:italic;margin-top:20px}
+</style>
+</head>
+<body>
+
+<div class="card" id="card">
+  <div class="brand">Château Privé</div>
+  <div class="brand-meta">Cannes · MMXXVI</div>
+
+  <div id="state-loading"><h1>Loading…</h1></div>
+
+  <div id="state-confirm" style="display:none">
+    <div class="eyebrow">You've been recommended</div>
+    <h1 id="confirmHeadline">Confirm your interest.</h1>
+    <div class="divider"></div>
+    <p class="lead" id="confirmBody">Loading details…</p>
+    <p class="note">By confirming, you let us know you'd like to attend. We'll review and get back to you.</p>
+    <div class="actions">
+      <button class="btn-confirm" id="confirmBtn">Yes, I'd like to attend</button>
+    </div>
+  </div>
+
+  <div id="state-success" style="display:none">
+    <div class="icon-state">&#10003;</div>
+    <div class="eyebrow">Thank you</div>
+    <h1>We'll be in touch.</h1>
+    <div class="divider"></div>
+    <p class="lead">Thanks for letting us know — we'll review and get back to you shortly.</p>
+    <p class="note">— Château Privé</p>
+  </div>
+
+  <div id="state-already-expressed" style="display:none">
+    <div class="eyebrow">Already received</div>
+    <h1>We've got it.</h1>
+    <div class="divider"></div>
+    <p>You've already expressed your interest. We'll get back to you shortly.</p>
+  </div>
+
+  <div id="state-already-approved" style="display:none">
+    <div class="icon-state">&#10003;</div>
+    <div class="eyebrow">Confirmed</div>
+    <h1>You are confirmed.</h1>
+    <div class="divider"></div>
+    <p>You've already been confirmed. Check your email for the details.</p>
+  </div>
+
+  <div id="state-invalid" style="display:none">
+    <div class="icon-state icon-error">!</div>
+    <div class="eyebrow">Link invalid</div>
+    <h1>Link expired.</h1>
+    <div class="divider"></div>
+    <p>This link doesn't appear to be valid. If you believe this is an error, please contact the host directly.</p>
+  </div>
+</div>
+
+<script>
+  const params = new URLSearchParams(window.location.search);
+  const id = params.get('id');
+
+  function show(stateId) {
+    ['state-loading','state-confirm','state-success','state-already-expressed','state-already-approved','state-invalid']
+      .forEach(s => { document.getElementById(s).style.display = s === stateId ? '' : 'none'; });
+  }
+
+  async function init() {
+    if (!id) { show('state-invalid'); return; }
+    try {
+      const res = await fetch('/api/confirm-interest/lookup?id=' + encodeURIComponent(id));
+      const data = await res.json();
+      if (!res.ok || !data.ok) { show('state-invalid'); return; }
+
+      if (data.isApproved) { show('state-already-approved'); return; }
+      if (data.isDeclined) { show('state-invalid'); return; }
+      if (data.alreadyExpressed) { show('state-already-expressed'); return; }
+
+      // Listed state — show confirm
+      const primary = data.primaryName || 'A friend';
+      const yourName = data.name ? data.name.split(' ')[0] : null;
+      document.getElementById('confirmHeadline').textContent =
+        yourName ? `Welcome, ${yourName}.` : 'Confirm your interest.';
+      document.getElementById('confirmBody').innerHTML =
+        '<strong>' + escapeHtml(primary) + '</strong> has recommended you for Château Privé on Friday, 15 May 2026 in Cannes.';
+      show('state-confirm');
+    } catch (err) {
+      show('state-invalid');
+    }
+  }
+
+  function escapeHtml(s) {
+    if (!s) return '';
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  document.getElementById('confirmBtn').addEventListener('click', async () => {
+    const btn = document.getElementById('confirmBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span>Confirming…';
+    try {
+      const res = await fetch('/api/confirm-interest/confirm', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed');
+      show('state-success');
+    } catch (err) {
+      btn.disabled = false;
+      btn.textContent = 'Try again';
+      alert('Could not confirm: ' + err.message);
+    }
+  });
+
+  init();
+</script>
+</body>
+</html>
