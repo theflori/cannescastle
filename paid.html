@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Confirmed — Château Privé · Cannes 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=EB+Garamond:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    background:#0F0C09;
+    color:#F1ECDF;
+    font-family:'EB Garamond',Georgia,serif;
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:24px;
+    line-height:1.5;
+  }
+  .container{
+    max-width:560px;
+    width:100%;
+    text-align:center;
+    padding:60px 36px;
+    background:#1A1612;
+    border:1px solid rgba(241,236,223,0.12);
+  }
+  .label{
+    font-family:'EB Garamond',Georgia,serif;
+    font-size:11px;
+    letter-spacing:3px;
+    text-transform:uppercase;
+    color:#d4b884;
+    margin-bottom:6px;
+  }
+  .sublabel{
+    font-size:10px;
+    letter-spacing:3px;
+    text-transform:uppercase;
+    color:rgba(241,236,223,0.45);
+    margin-bottom:36px;
+  }
+  .gold-line{
+    width:60px;
+    height:1px;
+    background:#B8965A;
+    margin:0 auto 36px;
+  }
+  h1{
+    font-family:'Cormorant Garamond',Georgia,serif;
+    font-style:italic;
+    font-weight:300;
+    font-size:50px;
+    line-height:1.15;
+    color:#F1ECDF;
+    margin-bottom:24px;
+  }
+  p{
+    font-size:17px;
+    line-height:1.65;
+    color:rgba(241,236,223,0.78);
+    margin-bottom:18px;
+  }
+  p strong{color:#F1ECDF;font-weight:500}
+  .details-box{
+    margin:32px 0;
+    padding:24px;
+    background:#231D17;
+    border-top:1px solid rgba(241,236,223,0.12);
+    border-bottom:1px solid rgba(241,236,223,0.12);
+    text-align:left;
+  }
+  .details-box .row{
+    display:flex;
+    gap:16px;
+    padding:8px 0;
+  }
+  .details-box .row + .row{border-top:1px solid rgba(241,236,223,0.06)}
+  .details-box .k{
+    width:80px;
+    font-size:11px;
+    letter-spacing:3px;
+    text-transform:uppercase;
+    color:rgba(241,236,223,0.55);
+    padding-top:3px;
+  }
+  .details-box .v{flex:1;color:#F1ECDF;font-size:16px}
+  .footer{
+    margin-top:36px;
+    padding-top:24px;
+    border-top:1px solid rgba(241,236,223,0.12);
+    font-size:11px;
+    letter-spacing:3px;
+    text-transform:uppercase;
+    color:rgba(241,236,223,0.45);
+  }
+  @media (max-width:560px){
+    .container{padding:48px 24px}
+    h1{font-size:36px}
+  }
+</style>
+</head>
+<body>
+<main class="container">
+  <div class="label">Concierge Access</div>
+  <div class="sublabel">Payment confirmed</div>
+  <div class="gold-line"></div>
+
+  <h1>You're confirmed.</h1>
+  <p id="msg">Your spot at Château Privé is secured. A confirmation email with all final details is on its way.</p>
+
+  <div class="details-box">
+    <div class="row"><div class="k">Date</div><div class="v">Friday, 15 May 2026</div></div>
+    <div class="row"><div class="k">Place</div><div class="v">Cannes Californie</div></div>
+    <div class="row"><div class="k">Doors</div><div class="v">17:00 sharp</div></div>
+  </div>
+
+  <p style="font-size:14px;color:rgba(241,236,223,0.55);font-style:italic">If your confirmation email doesn't arrive in 10 minutes, check your spam folder or reply to <span style="color:#d4b884">rsvp@fraimit.com</span>.</p>
+
+  <div class="footer">Château Privé · 15 May 2026</div>
+</main>
+<script>
+  // Show different message if already paid before
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('already') === '1') {
+    document.getElementById('msg').textContent = 'Your payment was already processed. Your spot is confirmed and the confirmation email was sent earlier.';
+  }
+</script>
+</body></html>
