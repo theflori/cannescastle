@@ -366,6 +366,41 @@
   }
   .field__input::placeholder { color: var(--ink-faint); opacity: 0.5; }
 
+  .phone-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+  }
+  .phone-cc {
+    flex: 0 0 auto;
+    border: none;
+    outline: none;
+    background: transparent;
+    font-family: var(--body);
+    font-weight: 400;
+    font-size: clamp(16px, 1.5vw, 19px);
+    color: var(--ink);
+    line-height: 1.3;
+    padding: 0 22px 0 0;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path d='M1 1l4 4 4-4' fill='none' stroke='%238a8270' stroke-width='1.2' stroke-linecap='round'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 4px center;
+    border-right: 1px solid var(--hairline-strong);
+    transition: border-color 0.3s ease;
+  }
+  .phone-cc:focus { border-right-color: var(--gold); }
+  .phone-cc option { color: var(--ink); background: #fff; }
+  .phone-number {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+  .field.is-error .phone-cc { color: #B0463A; border-right-color: #B0463A; }
+
   .privacy__link {
     color: inherit;
     text-decoration: underline;
@@ -715,8 +750,61 @@
         <div class="field__error">Please enter a valid email address.</div>
       </div>
       <div class="field" data-field="phone">
-        <label class="field__label has-tick" for="phone">Phone</label>
-        <input class="field__input" type="tel" id="phone" name="phone" placeholder="+ country code" autocomplete="tel" required="">
+        <label class="field__label has-tick" for="phoneNumber">Phone</label>
+        <div class="phone-row">
+          <select class="phone-cc" id="phoneCountry" aria-label="Country code">
+            <option value="+49" data-flag="🇩🇪" selected>🇩🇪 +49</option>
+            <option value="+43" data-flag="🇦🇹">🇦🇹 +43</option>
+            <option value="+41" data-flag="🇨🇭">🇨🇭 +41</option>
+            <option value="+33" data-flag="🇫🇷">🇫🇷 +33</option>
+            <option value="+39" data-flag="🇮🇹">🇮🇹 +39</option>
+            <option value="+44" data-flag="🇬🇧">🇬🇧 +44</option>
+            <option value="+1" data-flag="🇺🇸">🇺🇸 +1</option>
+            <option value="+31" data-flag="🇳🇱">🇳🇱 +31</option>
+            <option value="+32" data-flag="🇧🇪">🇧🇪 +32</option>
+            <option value="+34" data-flag="🇪🇸">🇪🇸 +34</option>
+            <option value="+45" data-flag="🇩🇰">🇩🇰 +45</option>
+            <option value="+46" data-flag="🇸🇪">🇸🇪 +46</option>
+            <option value="+47" data-flag="🇳🇴">🇳🇴 +47</option>
+            <option value="+48" data-flag="🇵🇱">🇵🇱 +48</option>
+            <option value="+30" data-flag="🇬🇷">🇬🇷 +30</option>
+            <option value="+351" data-flag="🇵🇹">🇵🇹 +351</option>
+            <option value="+352" data-flag="🇱🇺">🇱🇺 +352</option>
+            <option value="+353" data-flag="🇮🇪">🇮🇪 +353</option>
+            <option value="+354" data-flag="🇮🇸">🇮🇸 +354</option>
+            <option value="+358" data-flag="🇫🇮">🇫🇮 +358</option>
+            <option value="+359" data-flag="🇧🇬">🇧🇬 +359</option>
+            <option value="+36" data-flag="🇭🇺">🇭🇺 +36</option>
+            <option value="+370" data-flag="🇱🇹">🇱🇹 +370</option>
+            <option value="+371" data-flag="🇱🇻">🇱🇻 +371</option>
+            <option value="+372" data-flag="🇪🇪">🇪🇪 +372</option>
+            <option value="+380" data-flag="🇺🇦">🇺🇦 +380</option>
+            <option value="+385" data-flag="🇭🇷">🇭🇷 +385</option>
+            <option value="+386" data-flag="🇸🇮">🇸🇮 +386</option>
+            <option value="+40" data-flag="🇷🇴">🇷🇴 +40</option>
+            <option value="+420" data-flag="🇨🇿">🇨🇿 +420</option>
+            <option value="+421" data-flag="🇸🇰">🇸🇰 +421</option>
+            <option value="+90" data-flag="🇹🇷">🇹🇷 +90</option>
+            <option value="+971" data-flag="🇦🇪">🇦🇪 +971</option>
+            <option value="+972" data-flag="🇮🇱">🇮🇱 +972</option>
+            <option value="+966" data-flag="🇸🇦">🇸🇦 +966</option>
+            <option value="+974" data-flag="🇶🇦">🇶🇦 +974</option>
+            <option value="+852" data-flag="🇭🇰">🇭🇰 +852</option>
+            <option value="+81" data-flag="🇯🇵">🇯🇵 +81</option>
+            <option value="+82" data-flag="🇰🇷">🇰🇷 +82</option>
+            <option value="+86" data-flag="🇨🇳">🇨🇳 +86</option>
+            <option value="+91" data-flag="🇮🇳">🇮🇳 +91</option>
+            <option value="+61" data-flag="🇦🇺">🇦🇺 +61</option>
+            <option value="+64" data-flag="🇳🇿">🇳🇿 +64</option>
+            <option value="+27" data-flag="🇿🇦">🇿🇦 +27</option>
+            <option value="+55" data-flag="🇧🇷">🇧🇷 +55</option>
+            <option value="+52" data-flag="🇲🇽">🇲🇽 +52</option>
+            <option value="+54" data-flag="🇦🇷">🇦🇷 +54</option>
+            <option value="+7" data-flag="🇷🇺">🇷🇺 +7</option>
+          </select>
+          <input class="field__input phone-number" type="tel" id="phoneNumber" placeholder="170 1234567" autocomplete="tel-national" inputmode="tel" required="">
+        </div>
+        <input type="hidden" id="phone" name="phone">
         <div class="field__error">Please enter a valid phone number.</div>
       </div>
       <div class="field" data-field="instagram">
@@ -835,11 +923,24 @@
     if (state) fieldEl.classList.add(state);
   };
 
+  // Compose country code + national number into the hidden phone field
+  const phoneCountry = document.getElementById('phoneCountry');
+  const phoneNumber = document.getElementById('phoneNumber');
+  const phoneHidden = document.getElementById('phone');
+  const syncPhone = () => {
+    const cc = phoneCountry ? phoneCountry.value : '';
+    const num = phoneNumber ? phoneNumber.value.trim() : '';
+    phoneHidden.value = num ? (cc + ' ' + num) : '';
+  };
+
   const validateField = (fieldEl, { showError = false } = {}) => {
     const fname = fieldEl.dataset.field;
-    const input = fieldEl.querySelector('.field__input');
+    const input = fname === 'phone'
+      ? document.getElementById('phone')
+      : fieldEl.querySelector('.field__input');
     const validator = validators[fname];
     if (!validator) return true;
+    if (fname === 'phone') syncPhone();
     const value = input.value;
     const valid = validator(value);
     if (valid) { setFieldState(fieldEl, 'is-valid'); return true; }
@@ -847,6 +948,15 @@
     setFieldState(fieldEl, showError ? 'is-error' : null);
     return false;
   };
+
+  if (phoneCountry && phoneNumber) {
+    phoneCountry.addEventListener('change', () => {
+      syncPhone();
+      const fieldEl = phoneNumber.closest('.field');
+      if (fieldEl && phoneNumber.value.trim().length > 0) validateField(fieldEl, { showError: true });
+    });
+    phoneNumber.addEventListener('input', syncPhone);
+  }
 
   // Live revalidation
   document.querySelectorAll('.field[data-field]').forEach((fieldEl) => {
