@@ -14,8 +14,29 @@ export async function onRequest(context) {
     const publicRoutes = ['/login', '/api/login', '/api/logout', '/login.html', '/api/healthcheck',
       '/buy', '/buy.html', '/paid', '/paid.html',
       '/decline', '/decline.html', '/plus-one', '/plus-one.html', '/thanks', '/thanks.html',
-      '/r'];
+      '/r',
+      '/terms', '/terms.html',
+      '/confirm-interest', '/confirm-interest.html'];
     if (publicRoutes.some(p => url.pathname === p || url.pathname.startsWith(p + '/'))) {
+      return next();
+    }
+
+    // Root path and the public landing page are NOT auth-protected.
+    // index.html itself contains hostname-based routing (frontend domain →
+    // RSVP landing, dashboard domain → /guests).
+    if (url.pathname === '/' || url.pathname === '/index.html') {
+      return next();
+    }
+    // The RSVP landing page itself (filename may contain special chars / URL encoding)
+    const decodedPath = (() => {
+      try { return decodeURIComponent(url.pathname); } catch { return url.pathname; }
+    })();
+    if (decodedPath.toLowerCase().includes('rsvp') && decodedPath.endsWith('.html')) {
+      return next();
+    }
+
+    // Public static assets: images, fonts, og previews — anything used by the landing page
+    if (/\.(jpg|jpeg|png|gif|webp|svg|ico|woff|woff2|ttf|otf|eot|css|js|map|mp4|webm)$/i.test(url.pathname)) {
       return next();
     }
 
