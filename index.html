@@ -1,30 +1,8 @@
-<!-- deploy-marker index-smart-v1 -->
 <!DOCTYPE html>
-<html lang="en">
-<head>
+<html lang="en"><head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Château Privé · Cannes 2026</title>
-<style>body{background:#F1ECDF;font-family:system-ui,-apple-system,sans-serif;color:#8a8270;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;font-size:13px;letter-spacing:0.1em}</style>
-</head>
-<body>
-<div>Loading…</div>
-<script>
-  // Route based on hostname:
-  //  - chateau-cannes.fraimit.com / cannescastle.com → public RSVP landing page
-  //  - cannes-dash.pages.dev / other hosts          → /guests (dashboard)
-  (function () {
-    var host = (window.location.hostname || '').toLowerCase();
-    var isFrontend =
-      host.indexOf('chateau-cannes.fraimit.com') !== -1 ||
-      host.indexOf('cannescastle.com') !== -1 ||
-      host.indexOf('cannescastle.fraimit') !== -1;
-    if (isFrontend) {
-      window.location.replace('/Ch%C3%A2teau%20Priv%C3%A9%20-%20RSVP.html');
-    } else {
-      window.location.replace('/guests');
-    }
-  })();
-</script>
-</body>
-</html>
+<meta http-equiv="refresh" content="0; url=/Château Privé - RSVP.html">
+<script>window.location.replace('/' + encodeURIComponent('Château Privé - RSVP.html'));</script>
+<style>body{background:#F1ECDF;font-family:system-ui;color:#8a8270;display:flex;align-items:center;justify-content:center;height:100vh;margin:0}</style>
+</head><body>Loading…</body></html>
