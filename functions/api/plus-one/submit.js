@@ -1,52 +1,47 @@
-// deploy-marker 1778504055
+// deploy-marker 1778400849
 // POST /api/plus-one/submit
-// Body: { id, firstName, lastName, instagram, email, phone }
+// Body: { token, firstName, lastName, email, phone }
 //
-// NEW FLOW (Plus-One is NOT auto-confirmed):
-// 1. Validate primary, ensure not already used
-// 2. Create new record with Messaging Status = "Listed" (not Approved!)
-// 3. Generate an Interest Code (uses Decline Code field as the entry token)
-// 4. Mark primary as Plus One Used (sperrt sofort)
-// 5. Send RECOMMENDATION email + SMS (NOT a confirmation)
-// 6. Plus-one clicks the link -> /confirm-interest -> status becomes Semi Approved
-// 7. Host manually clicks Confirm & Send -> status becomes Approved + welcome email
+// 1. Validate token, ensure plus-one not yet used
+// 2. Create new Airtable record for the plus-one
+//    - Status: Approved (auto-approved as guest of approved primary)
+//    - Messaging Status: Approved
+//    - Plus One Of: links back to primary
+// 3. Update primary record:
+//    - Plus One Used: true
+// 4. Generate decline token for plus-one, send their welcome email + SMS
 
-import {
-  airtableGet, airtablePatch, airtableCreate,
-  sendEmail, sendSms, normalizePhone,
-  generateUniqueCode,
-  jsonError, jsonOk, escapeHtml
-} from '../../_lib/messaging-utils.js';
-
-const PUBLIC_BASE = 'https://chateau-cannes.fraimit.com';
-const shortUrl = (code) => `${PUBLIC_BASE}/r/${code}`;
+import { signToken, verifyToken, airtableGet, airtablePatch, airtableCreate, sendEmail, sendSms, normalizePhone, jsonError, jsonOk, getBaseUrl } from '../../_lib/messaging-utils.js';
+import { renderPlusOneWelcomeEmail, renderPlusOneWelcomeSms } from '../../_lib/templates.js';
 
 export async function onRequestPost(context) {
   const { request, env } = context;
 
-  if (!env.AIRTABLE_TOKEN || !env.RESEND_API_KEY) {
+  if (!env.SESSION_SECRET || !env.AIRTABLE_TOKEN || !env.RESEND_API_KEY) {
     return jsonError('Server misconfigured', 500);
   }
 
   let body;
   try { body = await request.json(); } catch { return jsonError('Invalid JSON', 400); }
 
-  const { id, firstName, lastName, instagram, email, phone } = body;
-  if (!id || !id.startsWith('rec')) return jsonError('Invalid id', 400);
+  const { token, firstName, lastName, email, phone } = body;
+
+  if (!token) return jsonError('Missing token', 400);
   if (!firstName || !lastName) return jsonError('First and last name required', 400);
-  if (!instagram || typeof instagram !== 'string' || instagram.trim().length === 0) {
-    return jsonError('Instagram handle required', 400);
-  }
   if (!email || !email.includes('@')) return jsonError('Valid email required', 400);
 
-  const cleanInstagram = String(instagram).trim()
-    .replace(/^@/, '')
-    .replace(/^https?:\/\/(www\.)?instagram\.com\//i, '')
-    .replace(/\/$/, '');
+  const payload = await verifyToken(token, env.SESSION_SECRET, 'plusone');
+  if (!payload || !payload.rid) return jsonError('Invalid token', 403);
 
   try {
-    const primary = await airtableGet(env, id);
+    // 1. Read primary, check token + plus-one-used
+    const primary = await airtableGet(env, payload.rid);
     const pf = primary.fields || {};
+
+    const storedToken = pf['Plus One Token'] || '';
+    if (storedToken && storedToken !== token) {
+      return jsonError('Token superseded', 403);
+    }
 
     if (pf['Plus One Used']) {
       return jsonError('Plus-one already added for this invitation', 409);
@@ -56,32 +51,46 @@ export async function onRequestPost(context) {
     const fullName = `${firstName} ${lastName}`.trim();
     const normalizedPhone = normalizePhone(phone);
 
-    // Generate Interest Code (uses Decline Code field as the code storage)
-    const interestCode = await generateUniqueCode(env, 'Decline Code');
-
-    // Create plus-one record — NOT auto-approved.
-    // Starts as Listed; will move to Semi Approved when they click the link.
+    // 2. Create plus-one record
     const newRecord = await airtableCreate(env, {
       'Full Name': fullName,
       'Email': email,
       'Phone': normalizedPhone,
-      'Instagram': cleanInstagram,
-      'Status': 'Pending',
-      'Messaging Status': 'Listed',
+      'Status': 'Approved',
+      'Messaging Status': 'Approved',
       'Source': 'Plus-One',
-      'Plus One Of': [id],
-      'Decline Code': interestCode,
+      'Plus One Of': [payload.rid],
       'Last Message Sent At': new Date().toISOString()
     });
+
     const newId = newRecord.id;
 
-    // Lock primary so they can't add another plus-one
-    await airtablePatch(env, id, { 'Plus One Used': true });
+    // 3. Generate decline token for plus-one
+    const declineToken = await signToken(
+      { rid: newId, p: 'decline', iat: Date.now() },
+      env.SESSION_SECRET
+    );
+    const baseUrl = getBaseUrl(request);
+    const declineUrl = `${baseUrl}/decline?token=${encodeURIComponent(declineToken)}`;
 
-    // Send RECOMMENDATION email
+    // Save decline token to plus-one record
+    await airtablePatch(env, newId, {
+      'Decline Token': declineToken
+    });
+
+    // 4. Mark primary as plus-one-used
+    await airtablePatch(env, payload.rid, {
+      'Plus One Used': true
+    });
+
+    // 5. Send welcome email to plus-one
     let emailSent = false;
     try {
-      const emailContent = renderRecommendationEmail({ name: fullName, primaryName, interestCode });
+      const emailContent = renderPlusOneWelcomeEmail({
+        name: fullName,
+        primaryName,
+        declineUrl
+      });
       await sendEmail(env, {
         to: email,
         subject: emailContent.subject,
@@ -90,133 +99,31 @@ export async function onRequestPost(context) {
       });
       emailSent = true;
     } catch (err) {
-      console.error('Plus-one recommendation email failed:', err.message);
+      console.error('Plus-one welcome email failed:', err.message);
     }
 
-    // Send RECOMMENDATION sms
+    // 6. Send SMS to plus-one (if phone + Twilio configured)
     let smsSent = false;
     if (normalizedPhone && env.TWILIO_ACCOUNT_SID) {
       try {
-        const smsBody = renderRecommendationSms({ name: fullName, primaryName, interestCode });
+        const smsBody = renderPlusOneWelcomeSms({
+          name: fullName,
+          primaryName,
+          declineUrl
+        });
         await sendSms(env, { to: normalizedPhone, body: smsBody });
         smsSent = true;
       } catch (err) {
-        console.error('Plus-one recommendation SMS failed:', err.message);
+        console.error('Plus-one SMS failed:', err.message);
       }
     }
 
-    return jsonOk({ created: newId, emailSent, smsSent });
+    return jsonOk({
+      created: newId,
+      emailSent,
+      smsSent
+    });
   } catch (err) {
     return jsonError('Submission failed: ' + err.message, 500);
   }
-}
-
-// ============== RECOMMENDATION EMAIL ==============
-// Tells the plus-one: "[Primary] recommended you. Click to express interest."
-// They are NOT yet confirmed.
-
-function renderRecommendationEmail({ name, primaryName, interestCode }) {
-  const firstName = (name || '').split(' ')[0] || 'there';
-  const subject = `${primaryName} has recommended you — Château Privé · 15 May 2026`;
-  const confirmUrl = shortUrl(interestCode);
-
-  const text = `Dear ${firstName},
-
-${primaryName} has recommended you for Château Privé — a private evening during the 79th Cannes Film Festival.
-
-Friday, 15 May 2026 · Cannes Californie
-
-This is not yet a confirmed invitation. If you'd like to attend, please click the link below to express your interest. We'll then review and get back to you.
-
-Express your interest: ${confirmUrl}
-
-If you don't wish to attend, no action is needed.
-
-— Château Privé
-`;
-
-  const html = `<!DOCTYPE html>
-<html lang="en"><head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="color-scheme" content="dark">
-<title>${escapeHtml(subject)}</title>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=EB+Garamond:wght@400;500&display=swap" rel="stylesheet">
-<style>
-@media only screen and (max-width: 620px) {
-  .container { width: 100% !important; }
-  .px-40 { padding-left: 24px !important; padding-right: 24px !important; }
-  .h1 { font-size: 28px !important; line-height: 1.18 !important; }
-  .details td { font-size: 14px !important; }
-  .details .lbl { width: 90px !important; padding-left: 20px !important; }
-  .details .val { padding-right: 20px !important; }
-}
-body { margin: 0; padding: 0; }
-</style>
-</head>
-<body style="margin:0;padding:0;background-color:#0F0C09;font-family:'EB Garamond',Georgia,serif;color:#F1ECDF">
-
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" bgcolor="#0F0C09" style="background-color:#0F0C09">
-<tr><td align="center" style="padding:32px 16px">
-<table role="presentation" class="container" width="600" cellpadding="0" cellspacing="0" style="width:600px;max-width:600px;background-color:#1A1612">
-
-<tr><td align="center" class="px-40" style="padding:20px 40px;border-bottom:1px solid rgba(241,236,223,0.12)">
-<table role="presentation" width="100%"><tr>
-<td align="left" style="font-family:'Cormorant Garamond',Georgia,serif;font-style:italic;font-size:17px;color:#d4b884">Château Privé</td>
-<td align="right" style="font-family:'EB Garamond',Georgia,serif;font-size:10px;color:rgba(241,236,223,0.55);letter-spacing:3px;text-transform:uppercase">15 May 2026</td>
-</tr></table>
-</td></tr>
-
-<tr><td class="px-40" align="left" style="padding:40px 40px 24px">
-<p style="margin:0 0 10px;font-family:'EB Garamond',Georgia,serif;font-size:10px;color:#d4b884;letter-spacing:3px;text-transform:uppercase">You've been recommended</p>
-<h1 class="h1" style="margin:0;font-family:'Cormorant Garamond',Georgia,serif;font-style:italic;font-weight:300;font-size:34px;line-height:1.1;color:#d4b884;letter-spacing:-0.3px">A recommendation for you.</h1>
-</td></tr>
-
-<tr><td class="px-40" align="left" style="padding:0 40px 24px">
-<p style="margin:0 0 14px;font-family:'EB Garamond',Georgia,serif;font-size:16px;line-height:1.6;color:#F1ECDF">Dear ${escapeHtml(firstName)},</p>
-<p style="margin:0 0 14px;font-family:'EB Garamond',Georgia,serif;font-size:16px;line-height:1.6;color:rgba(241,236,223,0.85)">
-<span style="color:#F1ECDF">${escapeHtml(primaryName)}</span> has recommended you for <span style="color:#F1ECDF">Château Privé</span> — a private evening during the 79<sup style="font-size:10px">th</sup> Cannes Film Festival.
-</p>
-<p style="margin:0;font-family:'EB Garamond',Georgia,serif;font-size:14px;line-height:1.6;color:rgba(241,236,223,0.65);font-style:italic">
-This is not yet a confirmed invitation. If you'd like to attend, please express your interest below — we'll then review and get back to you.
-</p>
-</td></tr>
-
-<tr><td class="px-40" style="padding:0 40px">
-<table role="presentation" class="details" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#231D17;border-top:1px solid rgba(241,236,223,0.12);border-bottom:1px solid rgba(241,236,223,0.12)">
-<tr>
-<td class="lbl" width="120" style="padding:16px 0 16px 24px;font-family:'EB Garamond',Georgia,serif;font-size:10px;color:rgba(241,236,223,0.55);letter-spacing:3px;text-transform:uppercase;vertical-align:top">Date</td>
-<td class="val" style="padding:16px 24px 16px 0;font-family:'EB Garamond',Georgia,serif;font-size:15px;color:#F1ECDF;line-height:1.5">Friday, 15 May 2026</td>
-</tr>
-<tr><td colspan="2" style="border-top:1px solid rgba(241,236,223,0.08);line-height:0;font-size:0">&nbsp;</td></tr>
-<tr>
-<td class="lbl" style="padding:16px 0 16px 24px;font-family:'EB Garamond',Georgia,serif;font-size:10px;color:rgba(241,236,223,0.55);letter-spacing:3px;text-transform:uppercase;vertical-align:top">Place</td>
-<td class="val" style="padding:16px 24px 16px 0;font-family:'EB Garamond',Georgia,serif;font-size:15px;color:#F1ECDF;line-height:1.5">Cannes Californie</td>
-</tr>
-</table>
-</td></tr>
-
-<tr><td class="px-40" align="center" style="padding:32px 40px 0">
-<table role="presentation" cellpadding="0" cellspacing="0" border="0">
-<tr><td bgcolor="#B8965A" style="background-color:#B8965A;border-radius:2px">
-<a href="${escapeHtml(confirmUrl)}" style="display:inline-block;padding:14px 32px;font-family:'EB Garamond',Georgia,serif;font-size:11px;color:#0F0C09;text-decoration:none;letter-spacing:3px;text-transform:uppercase;font-weight:500">Express your interest</a>
-</td></tr>
-</table>
-</td></tr>
-
-<tr><td class="px-40" align="center" style="padding:18px 40px 36px">
-<p style="margin:0;font-family:'EB Garamond',Georgia,serif;font-size:12px;line-height:1.6;color:rgba(241,236,223,0.55);font-style:italic">If you don't wish to attend, no action is needed.</p>
-</td></tr>
-
-<tr><td align="center" class="px-40" style="padding:24px 40px 32px;border-top:1px solid rgba(241,236,223,0.12);background-color:#0F0C09">
-<p style="margin:0;font-family:'Cormorant Garamond',Georgia,serif;font-style:italic;font-size:16px;color:#d4b884">Château Privé</p>
-</td></tr>
-
-</table></td></tr></table></body></html>`;
-
-  return { subject, text, html };
-}
-
-function renderRecommendationSms({ name, primaryName, interestCode }) {
-  const firstName = (name || '').split(' ')[0] || '';
-  return `${firstName ? firstName + ', ' : ''}${primaryName} recommended you for Château Privé · 15 May · Cannes. If interested, tap: ${shortUrl(interestCode)}`;
 }

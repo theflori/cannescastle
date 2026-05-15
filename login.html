@@ -1,0 +1,91 @@
+<!-- deploy-marker 1778406072 -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Sign in · Château Privé</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/shared/theme.css">
+<style>
+  body { display:flex; align-items:center; justify-content:center; padding:24px; }
+  .login-card {
+    width:100%; max-width:420px; background:var(--surface);
+    border:1px solid var(--border); border-radius:var(--radius-lg);
+    box-shadow:var(--shadow-lg); padding:40px 36px;
+  }
+  .login-brand { text-align:center; margin-bottom:36px; }
+  .login-logo {
+    width:48px; height:48px; border-radius:12px; margin: 0 auto 14px;
+    background: linear-gradient(135deg, var(--gold) 0%, var(--gold-deep) 100%);
+    display:flex; align-items:center; justify-content:center; color:var(--surface);
+    font-family: var(--font-display); font-style:italic; font-weight:500; font-size:24px;
+  }
+  .login-title { font-family:var(--font-display); font-style:italic; font-size:32px; color:var(--ink); }
+  .login-meta { font-size:11px; letter-spacing:0.22em; text-transform:uppercase; color:var(--ink-faint); margin-top:4px; }
+  .form-label { font-size:11px; letter-spacing:0.18em; text-transform:uppercase; color:var(--ink-faint); margin-bottom:8px; display:block; font-weight:500; }
+  form .input { padding:11px 14px; font-size:14px; }
+  .form-actions { margin-top:24px; }
+  .form-actions button { width:100%; padding:13px; font-size:13px; letter-spacing:0.06em; }
+  .error { margin-top:14px; font-size:12px; color:var(--error); min-height:16px; text-align:center; }
+</style>
+</head>
+<body>
+
+<div class="login-card">
+  <div class="login-brand">
+    <div class="login-logo">C</div>
+    <div class="login-title">Château Privé</div>
+    <div class="login-meta">Guest Dashboard</div>
+  </div>
+
+  <form id="loginForm">
+    <label class="form-label">Password</label>
+    <input type="password" class="input" id="password" autocomplete="current-password" autofocus required>
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary" id="submitBtn">Sign in</button>
+      <div class="error" id="error"></div>
+    </div>
+  </form>
+</div>
+
+<script>
+  const form = document.getElementById('loginForm');
+  const errEl = document.getElementById('error');
+  const btn = document.getElementById('submitBtn');
+
+  form.addEventListener('submit', async e => {
+    e.preventDefault();
+    errEl.textContent = '';
+    btn.disabled = true;
+    btn.textContent = 'Verifying…';
+
+    try {
+      const res = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: document.getElementById('password').value })
+      });
+      const data = await res.json();
+      if (res.ok && data.ok) {
+        // Staff lands on the scanner; admin on the dashboard
+        window.location.href = data.role === 'staff' ? '/scan' : '/guests';
+      } else {
+        errEl.textContent = data.error || 'Login failed';
+        btn.disabled = false;
+        btn.textContent = 'Sign in';
+        document.getElementById('password').value = '';
+        document.getElementById('password').focus();
+      }
+    } catch {
+      errEl.textContent = 'Network error';
+      btn.disabled = false;
+      btn.textContent = 'Sign in';
+    }
+  });
+</script>
+</body>
+</html>

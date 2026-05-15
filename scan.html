@@ -1,0 +1,669 @@
+<!-- deploy-marker scanner-v1 -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0F0C09">
+<title>Scanner · Château Privé</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; overscroll-behavior: none; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Inter', system-ui, sans-serif;
+    background: #FBFAF7;
+    color: #1a1a1a;
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+  }
+
+  /* Top bar */
+  .top-bar {
+    position: fixed; top: 0; left: 0; right: 0;
+    padding: max(env(safe-area-inset-top), 12px) 18px 12px;
+    background: rgba(251,250,247,0.96);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid #ECE9E1;
+    z-index: 50;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .brand {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-style: italic;
+    font-size: 16px;
+    color: #6b5e42;
+    letter-spacing: 0.5px;
+  }
+  .count {
+    font-size: 11px;
+    color: #8a8270;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    font-weight: 500;
+  }
+  .count strong { color: #1a1a1a; font-weight: 600; }
+
+  /* Camera viewport */
+  #video {
+    position: fixed; inset: 0;
+    width: 100%; height: 100%;
+    object-fit: cover;
+    background: #000;
+    z-index: 1;
+  }
+
+  /* Scan frame overlay */
+  .overlay {
+    position: fixed; inset: 0;
+    z-index: 10;
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .scan-frame {
+    width: 70vw;
+    max-width: 320px;
+    aspect-ratio: 1 / 1;
+    border: 2px solid rgba(255,255,255,0.95);
+    border-radius: 24px;
+    box-shadow: 0 0 0 9999px rgba(15,12,9,0.55);
+    position: relative;
+  }
+  .scan-frame::before,
+  .scan-frame::after,
+  .scan-frame > span::before,
+  .scan-frame > span::after {
+    content: ''; position: absolute;
+    width: 28px; height: 28px;
+    border-color: #B8965A;
+    border-style: solid;
+    border-width: 0;
+  }
+  .scan-frame::before { top: -2px; left: -2px; border-top-width: 4px; border-left-width: 4px; border-top-left-radius: 24px; }
+  .scan-frame::after { top: -2px; right: -2px; border-top-width: 4px; border-right-width: 4px; border-top-right-radius: 24px; }
+  .scan-frame > span::before { content: ''; position: absolute; bottom: -2px; left: -2px; border-bottom-width: 4px; border-left-width: 4px; border-bottom-left-radius: 24px; }
+  .scan-frame > span::after { content: ''; position: absolute; bottom: -2px; right: -2px; border-bottom-width: 4px; border-right-width: 4px; border-bottom-right-radius: 24px; }
+
+  .hint {
+    position: fixed;
+    bottom: max(env(safe-area-inset-bottom), 30px);
+    left: 0; right: 0;
+    text-align: center;
+    color: rgba(255,255,255,0.85);
+    font-size: 13px;
+    letter-spacing: 0.5px;
+    z-index: 11;
+  }
+
+  /* Result overlay — all centered for clear at-a-glance reading */
+  .result-screen {
+    position: fixed; inset: 0;
+    z-index: 100;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: max(env(safe-area-inset-top), 20px) 20px max(env(safe-area-inset-bottom), 20px);
+  }
+  .result-screen.show { display: flex; }
+
+  /* Three result states — all instantly distinguishable for door staff */
+  .result-valid    { background: #1f7a3c; color: #fff; }       /* green = first-time entry */
+  .result-warning  { background: #b03a30; color: #fff; }       /* red = scanned before — needs ID check */
+  .result-invalid  { background: #6a1a14; color: #fff; }       /* dark red = invalid / not approved */
+
+  /* Big status icon above headline — works at 2m distance in low light */
+  .result-icon {
+    width: 120px; height: 120px;
+    margin: 0 0 20px;
+    flex-shrink: 0;
+  }
+  .result-icon svg { width: 100%; height: 100%; display: block; }
+
+  .result-status-pill {
+    display: inline-block;
+    padding: 10px 24px;
+    border-radius: 100px;
+    background: rgba(255,255,255,0.2);
+    font-size: 16px;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    font-weight: 800;
+    margin-bottom: 18px;
+  }
+
+  .result-headline {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 88px;
+    line-height: 0.92;
+    font-weight: 500;
+    margin-bottom: 8px;
+    letter-spacing: -0.5px;
+  }
+  .result-sub {
+    font-size: 20px;
+    opacity: 0.92;
+    margin-bottom: 36px;
+    line-height: 1.35;
+    font-weight: 500;
+    max-width: 480px;
+  }
+
+  .avatar-wrap {
+    display: flex; flex-direction: column; align-items: center; gap: 16px;
+    margin-bottom: 30px;
+  }
+  .avatar {
+    width: 140px; height: 140px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.15);
+    overflow: hidden;
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 52px; font-weight: 700;
+    border: 3px solid rgba(255,255,255,0.4);
+  }
+  .avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+  .guest-name {
+    font-size: 36px;
+    font-weight: 800;
+    line-height: 1.1;
+    margin-bottom: 6px;
+    letter-spacing: -0.4px;
+  }
+  .guest-ig {
+    font-size: 26px;
+    opacity: 0.92;
+    font-weight: 600;
+    letter-spacing: 0.2px;
+  }
+
+  /* Importance pill in scanner — large, prominent above the name */
+  .importance-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 22px;
+    border-radius: 100px;
+    font-size: 18px;
+    font-weight: 800;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    line-height: 1;
+  }
+  .importance-pill.imp-vip-car { background: #B8965A; color: #1a1a1a; border: 1px solid #a47f3f; }
+  .importance-pill.imp-tier-1  { background: #d4d4d4; color: #1a1a1a; border: 1px solid #aaa; }
+  .importance-pill.imp-tier-2  { background: rgba(255,255,255,0.2); color: #fff; border: 1px solid rgba(255,255,255,0.4); }
+  .importance-pill.imp-tier-3  { background: rgba(0,0,0,0.35); color: #fff; border: 1px solid rgba(0,0,0,0.5); }
+
+  /* Plus-one info block — shows who they're with */
+  .plus-one-info {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 12px;
+    padding: 10px 18px;
+    background: rgba(255,255,255,0.18);
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 100px;
+    font-size: 17px;
+    font-weight: 600;
+  }
+  .plus-one-info .po-label {
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    opacity: 0.85;
+    font-weight: 700;
+  }
+  .plus-one-info.po-pending {
+    background: rgba(255,255,255,0.1);
+    opacity: 0.85;
+    font-style: italic;
+  }
+
+  .info-grid {
+    background: rgba(255,255,255,0.14);
+    border-radius: 20px;
+    padding: 22px 24px;
+    margin-bottom: 22px;
+    border: 1px solid rgba(255,255,255,0.22);
+    width: 100%;
+    max-width: 480px;
+    text-align: left;
+  }
+  .info-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 11px 0;
+    font-size: 19px;
+  }
+  .info-row + .info-row { border-top: 1px solid rgba(255,255,255,0.16); }
+  .info-key { opacity: 0.78; }
+  .info-val { font-weight: 800; }
+
+  .actions {
+    margin-top: auto;
+    display: flex; gap: 10px;
+    width: 100%;
+    max-width: 480px;
+  }
+  .btn {
+    flex: 1;
+    height: 72px;
+    border-radius: 18px;
+    border: none;
+    font-size: 19px;
+    font-weight: 800;
+    color: #fff;
+    background: rgba(255,255,255,0.22);
+    backdrop-filter: blur(8px);
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: transform 0.05s ease;
+    letter-spacing: 0.3px;
+  }
+  .btn:active { transform: scale(0.97); }
+  .btn-primary { background: #fff; color: #1a1a1a; }
+
+  /* Manual entry */
+  .manual-fab {
+    position: fixed;
+    right: 18px;
+    bottom: max(env(safe-area-inset-bottom), 24px);
+    width: 56px; height: 56px;
+    border-radius: 50%;
+    background: #fff;
+    border: 1px solid #ECE9E1;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 600;
+    z-index: 20;
+    cursor: pointer;
+  }
+
+  .manual-modal {
+    position: fixed; inset: 0;
+    background: rgba(15,12,9,0.85);
+    backdrop-filter: blur(8px);
+    z-index: 200;
+    display: none;
+    align-items: flex-end;
+  }
+  .manual-modal.show { display: flex; }
+  .manual-sheet {
+    background: #FBFAF7;
+    width: 100%;
+    border-radius: 24px 24px 0 0;
+    padding: 24px 20px max(env(safe-area-inset-bottom), 24px);
+  }
+  .manual-sheet h2 {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 24px;
+    font-weight: 400;
+    margin-bottom: 16px;
+  }
+  .manual-sheet input {
+    width: 100%;
+    padding: 14px 16px;
+    border-radius: 12px;
+    border: 1px solid #ECE9E1;
+    font-size: 16px;
+    font-family: monospace;
+    background: #fff;
+    margin-bottom: 12px;
+  }
+
+  /* Camera permission / error */
+  .pre-screen {
+    position: fixed; inset: 0;
+    background: #FBFAF7;
+    z-index: 30;
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column;
+    padding: 32px;
+    text-align: center;
+  }
+  .pre-screen.hide { display: none; }
+  .pre-screen h2 {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 32px;
+    font-weight: 400;
+    margin-bottom: 8px;
+  }
+  .pre-screen p {
+    font-size: 14px;
+    color: #6b5e42;
+    margin-bottom: 24px;
+    max-width: 320px;
+  }
+  .pre-screen button {
+    height: 52px;
+    padding: 0 32px;
+    background: #1a1a1a;
+    color: #fff;
+    border: none;
+    border-radius: 14px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .top-bar-actions { display: flex; gap: 8px; }
+  .icon-btn {
+    width: 36px; height: 36px;
+    background: transparent;
+    border: 1px solid #ECE9E1;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+    cursor: pointer;
+    color: #6b5e42;
+  }
+</style>
+</head>
+<body>
+
+<div class="pre-screen" id="preScreen">
+  <h2>Scanner</h2>
+  <p>Tap to enable the camera. Hold a guest's QR code in the frame to check them in.</p>
+  <button id="startBtn">Start scanning</button>
+</div>
+
+<div class="top-bar">
+  <div class="brand">Château Privé · Door</div>
+  <div class="top-bar-actions">
+    <div class="count" id="countDisplay">— / —</div>
+    <button class="icon-btn" id="logoutBtn" title="Logout">⏻</button>
+  </div>
+</div>
+
+<video id="video" autoplay playsinline muted></video>
+
+<div class="overlay"><div class="scan-frame"><span></span></div></div>
+<div class="hint">Center the QR code in the frame</div>
+
+<button class="manual-fab" id="manualBtn">⌨</button>
+
+<div class="manual-modal" id="manualModal">
+  <div class="manual-sheet">
+    <h2>Enter QR code manually</h2>
+    <input id="manualInput" placeholder="paste or type the code" autocomplete="off" spellcheck="false">
+    <div style="display:flex;gap:10px;margin-top:8px">
+      <button class="btn" style="background:#ECE9E1;color:#1a1a1a" id="manualCancel">Cancel</button>
+      <button class="btn btn-primary" style="background:#1a1a1a;color:#fff" id="manualSubmit">Check in</button>
+    </div>
+  </div>
+</div>
+
+<!-- Result overlay -->
+<div class="result-screen" id="resultScreen">
+  <div class="result-icon" id="resultIcon"></div>
+  <div class="result-status-pill" id="resultPill">—</div>
+  <div class="result-headline" id="resultHeadline">—</div>
+  <div class="result-sub" id="resultSub">—</div>
+
+  <div class="avatar-wrap">
+    <div class="avatar" id="avatarBox">?</div>
+    <div id="importanceBox"></div>
+    <div>
+      <div class="guest-name" id="guestName">—</div>
+      <div class="guest-ig" id="guestIg"></div>
+      <div id="plusOneBox"></div>
+    </div>
+  </div>
+
+  <div class="info-grid" id="infoGrid"></div>
+
+  <div class="actions">
+    <button class="btn" id="resultDismiss">Continue scanning</button>
+  </div>
+</div>
+
+<!-- jsQR — local-bundle would be safer but CDN is fine for 1 event -->
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+<script>
+(function() {
+  const video = document.getElementById('video');
+  const preScreen = document.getElementById('preScreen');
+  const startBtn = document.getElementById('startBtn');
+  const resultScreen = document.getElementById('resultScreen');
+  const resultPill = document.getElementById('resultPill');
+  const resultHeadline = document.getElementById('resultHeadline');
+  const resultSub = document.getElementById('resultSub');
+  const avatarBox = document.getElementById('avatarBox');
+  const guestName = document.getElementById('guestName');
+  const guestIg = document.getElementById('guestIg');
+  const infoGrid = document.getElementById('infoGrid');
+  const resultDismiss = document.getElementById('resultDismiss');
+  const countDisplay = document.getElementById('countDisplay');
+  const logoutBtn = document.getElementById('logoutBtn');
+  const manualBtn = document.getElementById('manualBtn');
+  const manualModal = document.getElementById('manualModal');
+  const manualInput = document.getElementById('manualInput');
+  const manualCancel = document.getElementById('manualCancel');
+  const manualSubmit = document.getElementById('manualSubmit');
+
+  let stream = null;
+  let canvas = document.createElement('canvas');
+  let ctx = canvas.getContext('2d', { willReadFrequently: true });
+  let scanning = false;
+  let lastQrSent = '';
+  let lastQrAt = 0;
+  let totalApproved = 0;
+  let totalCheckedIn = 0;
+
+  startBtn.addEventListener('click', startCamera);
+
+  async function startCamera() {
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } },
+        audio: false
+      });
+      video.srcObject = stream;
+      await video.play();
+      preScreen.classList.add('hide');
+      scanning = true;
+      requestAnimationFrame(scanLoop);
+      fetchCounts();
+    } catch (err) {
+      alert('Camera permission required: ' + (err && err.message || err));
+    }
+  }
+
+  function scanLoop() {
+    if (!scanning) return;
+    if (video.readyState === video.HAVE_ENOUGH_DATA) {
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const code = window.jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: 'dontInvert' });
+      if (code && code.data) {
+        handleScan(code.data.trim());
+      }
+    }
+    requestAnimationFrame(scanLoop);
+  }
+
+  async function handleScan(qr) {
+    if (!qr) return;
+    // Debounce: same QR within 3s, ignore
+    if (qr === lastQrSent && Date.now() - lastQrAt < 3000) return;
+    if (resultScreen.classList.contains('show')) return;
+    lastQrSent = qr;
+    lastQrAt = Date.now();
+    await submitCheckin(qr);
+  }
+
+  async function submitCheckin(qr) {
+    try {
+      const res = await fetch('/api/checkin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ qr })
+      });
+      if (res.status === 401) {
+        window.location.href = '/login';
+        return;
+      }
+      const data = await res.json();
+      renderResult(data);
+      navigator.vibrate && navigator.vibrate(data.result === 'valid' ? 50 : data.result === 'already_checked_in' ? [40,80,40] : [80,60,80,60,80]);
+      fetchCounts();
+    } catch (err) {
+      renderResult({ result: 'invalid', reason: 'network', message: err.message });
+    }
+  }
+
+  // SVG icons — large stroke so they read from a distance
+  const ICON_CHECK = '<svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"><circle cx="50" cy="50" r="44"/><polyline points="30 52 44 66 70 38"/></svg>';
+  const ICON_X = '<svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"><circle cx="50" cy="50" r="44"/><line x1="34" y1="34" x2="66" y2="66"/><line x1="66" y1="34" x2="34" y2="66"/></svg>';
+
+  function renderResult(data) {
+    const result = data.result;
+    resultScreen.className = 'result-screen show';
+    const resultIcon = document.getElementById('resultIcon');
+    if (result === 'valid') {
+      resultScreen.classList.add('result-valid');
+      resultIcon.innerHTML = ICON_CHECK;
+      resultPill.textContent = 'Welcome';
+      resultHeadline.textContent = 'Valid';
+      resultSub.textContent = 'First check-in · entry approved';
+    } else if (result === 'already_checked_in') {
+      resultScreen.classList.add('result-warning');
+      resultIcon.innerHTML = ICON_X;
+      resultPill.textContent = 'Already in';
+      resultHeadline.textContent = 'Scanned before';
+      resultSub.textContent = 'This guest has already been checked in. Verify ID before letting in again.';
+    } else {
+      resultScreen.classList.add('result-invalid');
+      resultIcon.innerHTML = ICON_X;
+      resultPill.textContent = 'Reject';
+      resultHeadline.textContent = 'Not valid';
+      const r = data.reason || 'unknown';
+      const map = {
+        'not-found': 'QR code not in the system',
+        'not-approved': 'Guest status is "' + (data.status || 'unknown') + '" — not approved',
+        'network': 'Network error — try again',
+        'unknown': 'Reason: ' + r
+      };
+      resultSub.textContent = map[r] || ('Reason: ' + r);
+    }
+
+    const g = data.guest || {};
+    guestName.textContent = g.name || '—';
+    if (g.instagram) {
+      guestIg.textContent = '@' + g.instagram;
+      guestIg.style.display = 'block';
+    } else {
+      guestIg.style.display = 'none';
+    }
+
+    // Avatar
+    if (g.igAvatarUrl) {
+      avatarBox.innerHTML = '<img src="/api/avatar?url=' + encodeURIComponent(g.igAvatarUrl) + '" onerror="this.outerHTML=\'' + (initials(g.name) || '?') + '\'">';
+    } else {
+      avatarBox.textContent = initials(g.name) || '?';
+    }
+
+    // Importance pill — slug-converted class so colors render
+    const importanceBox = document.getElementById('importanceBox');
+    if (g.importance) {
+      const slug = String(g.importance).toLowerCase().replace(/[\/\s]+/g, '-');
+      importanceBox.innerHTML = '<div class="importance-pill imp-' + slug + '">' + escapeHtml(g.importance) + '</div>';
+      importanceBox.style.display = 'block';
+    } else {
+      importanceBox.innerHTML = '';
+      importanceBox.style.display = 'none';
+    }
+
+    // Plus-one info — three possible states:
+    //   1. Guest IS a +1 (plusOneOfName) -> "+1 of <name>"
+    //   2. Guest brought a +1 (plusOneCompanionName set) -> "Bringing <name>"
+    //   3. Guest has plus-one allowance but hasn't named anyone yet
+    const plusOneBox = document.getElementById('plusOneBox');
+    let plusOneHtml = '';
+    if (g.plusOneOfName) {
+      plusOneHtml = '<div class="plus-one-info"><span class="po-label">+1 of</span> ' + escapeHtml(g.plusOneOfName) + '</div>';
+    } else if (g.plusOneCompanionName) {
+      const statusLabel = g.plusOneCompanionStatus
+        ? ' · ' + g.plusOneCompanionStatus
+        : '';
+      plusOneHtml = '<div class="plus-one-info"><span class="po-label">Bringing</span> ' + escapeHtml(g.plusOneCompanionName) + escapeHtml(statusLabel) + '</div>';
+    } else if (g.plusOneAllowance && String(g.plusOneAllowance) !== '0' && g.plusOneCode) {
+      plusOneHtml = '<div class="plus-one-info po-pending"><span class="po-label">+1</span> not yet named</div>';
+    }
+    plusOneBox.innerHTML = plusOneHtml;
+
+    // Info grid
+    const rows = [];
+    if (typeof g.newCheckInCount === 'number') rows.push(['Scans', g.newCheckInCount]);
+    if (g.hasPaid) rows.push(['Payment', 'Paid · Concierge']);
+    if (g.tags && g.tags.length) rows.push(['Tags', g.tags.join(', ')]);
+    if (g.notes) rows.push(['Notes', g.notes]);
+    infoGrid.innerHTML = rows.map(([k, v]) =>
+      '<div class="info-row"><span class="info-key">' + escapeHtml(k) + '</span><span class="info-val">' + escapeHtml(String(v)) + '</span></div>'
+    ).join('');
+    infoGrid.style.display = rows.length ? 'block' : 'none';
+  }
+
+  function initials(name) {
+    if (!name) return '';
+    const parts = name.trim().split(/\s+/);
+    return ((parts[0] || '')[0] || '') + ((parts[1] || '')[0] || '');
+  }
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  resultDismiss.addEventListener('click', () => {
+    resultScreen.classList.remove('show', 'result-valid', 'result-warning', 'result-invalid');
+  });
+
+  // Manual entry
+  manualBtn.addEventListener('click', () => {
+    manualModal.classList.add('show');
+    setTimeout(() => manualInput.focus(), 50);
+  });
+  manualCancel.addEventListener('click', () => {
+    manualModal.classList.remove('show');
+    manualInput.value = '';
+  });
+  manualSubmit.addEventListener('click', async () => {
+    const qr = manualInput.value.trim();
+    if (!qr) return;
+    manualModal.classList.remove('show');
+    manualInput.value = '';
+    await submitCheckin(qr);
+  });
+  manualInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') manualSubmit.click();
+  });
+
+  // Logout
+  logoutBtn.addEventListener('click', async () => {
+    if (!confirm('Log out of scanner?')) return;
+    await fetch('/api/logout', { method: 'POST' });
+    window.location.href = '/login';
+  });
+
+  // Counts (poll every 15s while idle)
+  async function fetchCounts() {
+    try {
+      const res = await fetch('/api/checkin-stats');
+      if (!res.ok) return;
+      const data = await res.json();
+      totalApproved = data.approved || 0;
+      totalCheckedIn = data.checkedIn || 0;
+      countDisplay.innerHTML = '<strong>' + totalCheckedIn + '</strong> / ' + totalApproved;
+    } catch (e) {}
+  }
+  setInterval(fetchCounts, 15000);
+})();
+</script>
+</body>
+</html>

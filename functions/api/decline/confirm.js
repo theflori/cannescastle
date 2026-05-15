@@ -1,30 +1,41 @@
-// deploy-marker 1778406072
+// deploy-marker 1778400849
 // POST /api/decline/confirm
-// Body: { id }
-// Sets Messaging Status = Declined. Idempotent.
+// Body: { token }
+// Validates token, sets Messaging Status = Declined.
 
-import { airtableGet, airtablePatch, jsonError, jsonOk } from '../../_lib/messaging-utils.js';
+import { verifyToken, airtableGet, airtablePatch, jsonError, jsonOk } from '../../_lib/messaging-utils.js';
 
 export async function onRequestPost(context) {
   const { request, env } = context;
 
-  if (!env.AIRTABLE_TOKEN) return jsonError('Server misconfigured', 500);
+  if (!env.SESSION_SECRET || !env.AIRTABLE_TOKEN) {
+    return jsonError('Server misconfigured', 500);
+  }
 
   let body;
   try { body = await request.json(); } catch { return jsonError('Invalid JSON', 400); }
 
-  const recordId = body.id;
-  if (!recordId || !recordId.startsWith('rec')) return jsonError('Invalid id', 400);
+  const token = body.token;
+  if (!token) return jsonError('Missing token', 400);
+
+  const payload = await verifyToken(token, env.SESSION_SECRET, 'decline');
+  if (!payload || !payload.rid) return jsonError('Invalid token', 403);
 
   try {
-    const record = await airtableGet(env, recordId);
+    // Validate against stored token (single-issuance defense)
+    const record = await airtableGet(env, payload.rid);
     const f = record.fields || {};
+    const storedToken = f['Decline Token'] || '';
+    if (storedToken && storedToken !== token) {
+      return jsonError('Token superseded', 403);
+    }
 
+    // Idempotent: if already declined, return success
     if (f['Messaging Status'] === 'Declined') {
       return jsonOk({ alreadyDeclined: true });
     }
 
-    await airtablePatch(env, recordId, {
+    await airtablePatch(env, payload.rid, {
       'Messaging Status': 'Declined'
     });
 

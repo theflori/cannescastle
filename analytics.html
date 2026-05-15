@@ -1,0 +1,610 @@
+<!-- deploy-marker 1778493934 -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Analytics · Château Privé EventOS</title>
+<meta name="robots" content="noindex,nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/shared/theme.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  .analytics-grid {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .chart-card {
+    background: var(--surface-1);
+    border: 1px solid var(--hairline);
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+  }
+  .chart-card.span-3 { grid-column: span 3; }
+  .chart-card.span-4 { grid-column: span 4; }
+  .chart-card.span-6 { grid-column: span 6; }
+  .chart-card.span-8 { grid-column: span 8; }
+  .chart-card.span-12 { grid-column: span 12; }
+
+  .chart-header {
+    display: flex; align-items: baseline; justify-content: space-between;
+    margin-bottom: 16px;
+  }
+  .chart-title {
+    font-family: 'Inter', sans-serif;
+    font-size: 11px; font-weight: 500;
+    letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+  .chart-meta { font-size: 11px; color: var(--ink-faint); }
+
+  .kpi-card {
+    background: var(--surface-1);
+    border: 1px solid var(--hairline);
+    border-radius: 12px;
+    padding: 20px 22px;
+    grid-column: span 3;
+  }
+  .kpi-label {
+    font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase;
+    color: var(--ink-faint); margin-bottom: 8px;
+  }
+  .kpi-value {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic; font-size: 38px; font-weight: 500;
+    line-height: 1; color: var(--ink); margin-bottom: 6px;
+  }
+  .kpi-value.gold { color: var(--gold-deep); }
+  .kpi-meta { font-size: 11px; color: var(--ink-faint); }
+
+  .chart-canvas-wrap { position: relative; height: 240px; }
+  .chart-canvas-wrap.tall { height: 320px; }
+  .chart-canvas-wrap.short { height: 180px; }
+
+  .top-list { list-style: none; margin: 0; padding: 0; }
+  .top-list li {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 0; border-bottom: 1px solid var(--hairline);
+  }
+  .top-list li:last-child { border-bottom: none; }
+  .top-list .rank {
+    width: 22px; font-family: 'Cormorant Garamond', serif;
+    font-style: italic; font-size: 16px; color: var(--gold);
+  }
+  .top-list .avatar {
+    width: 32px; height: 32px; border-radius: 50%;
+    background-color: var(--surface-3);
+    background-size: cover; background-position: center;
+    flex-shrink: 0; border: 1px solid var(--hairline);
+    display: inline-flex; align-items: center; justify-content: center;
+    color: var(--ink-faint);
+    font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 13px;
+  }
+  .top-list .name {
+    flex: 1; font-size: 13px; font-weight: 500;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .top-list .name .handle { font-weight: 400; color: var(--ink-faint); font-size: 11px; margin-left: 4px; }
+  .top-list .followers {
+    font-variant-numeric: tabular-nums; font-weight: 500;
+    color: var(--gold-deep); font-size: 13px;
+  }
+
+  .empty-chart {
+    display: flex; align-items: center; justify-content: center;
+    height: 100%; color: var(--ink-faint);
+    font-style: italic; font-size: 13px;
+  }
+
+  @media (max-width: 1280px) {
+    .chart-card.span-3, .kpi-card { grid-column: span 6; }
+    .chart-card.span-4 { grid-column: span 6; }
+    .chart-card.span-8, .chart-card.span-6 { grid-column: span 12; }
+  }
+  @media (max-width: 720px) {
+    .chart-card.span-3, .kpi-card,
+    .chart-card.span-4, .chart-card.span-6 { grid-column: span 12; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app-shell">
+  <div id="sidebar-mount"></div>
+
+  <main class="app-main">
+    <header class="page-header">
+      <div class="page-title-block">
+        <button class="icon-btn mobile-menu-btn" id="mobileMenuBtn" aria-label="Open menu">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+        <h1 class="page-title">Analytics</h1>
+        <span class="page-subtitle" id="headerMeta">Loading data…</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <button class="btn" id="reloadBtn" title="Reload from Airtable">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 4v5h-5"/></svg>
+          <span>Reload</span>
+        </button>
+      </div>
+    </header>
+
+    <div class="page-content">
+      <div class="analytics-grid">
+        <div class="kpi-card">
+          <div class="kpi-label">Total Submissions</div>
+          <div class="kpi-value" id="kpiTotal">—</div>
+          <div class="kpi-meta" id="kpiTotalMeta"></div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Approval Rate</div>
+          <div class="kpi-value gold" id="kpiApproval">—</div>
+          <div class="kpi-meta" id="kpiApprovalMeta"></div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Combined Reach</div>
+          <div class="kpi-value gold" id="kpiReach">—</div>
+          <div class="kpi-meta" id="kpiReachMeta">approved followers sum</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Avg. Followers</div>
+          <div class="kpi-value" id="kpiAvg">—</div>
+          <div class="kpi-meta" id="kpiAvgMeta"></div>
+        </div>
+      </div>
+
+      <div class="analytics-grid">
+        <div class="chart-card span-8">
+          <div class="chart-header"><span class="chart-title">Submissions over time</span><span class="chart-meta" id="timelineMeta"></span></div>
+          <div class="chart-canvas-wrap"><canvas id="chartTimeline"></canvas></div>
+        </div>
+        <div class="chart-card span-4">
+          <div class="chart-header"><span class="chart-title">Status Distribution</span></div>
+          <div class="chart-canvas-wrap"><canvas id="chartStatus"></canvas></div>
+        </div>
+      </div>
+
+      <div class="analytics-grid">
+        <div class="chart-card span-6">
+          <div class="chart-header"><span class="chart-title">Cumulative Approvals</span></div>
+          <div class="chart-canvas-wrap"><canvas id="chartCumulative"></canvas></div>
+        </div>
+        <div class="chart-card span-6">
+          <div class="chart-header"><span class="chart-title">Submissions by Hour of Day</span></div>
+          <div class="chart-canvas-wrap"><canvas id="chartHour"></canvas></div>
+        </div>
+      </div>
+
+      <div class="analytics-grid">
+        <div class="chart-card span-6">
+          <div class="chart-header"><span class="chart-title">Follower Distribution</span></div>
+          <div class="chart-canvas-wrap"><canvas id="chartFollowers"></canvas></div>
+        </div>
+        <div class="chart-card span-6">
+          <div class="chart-header"><span class="chart-title">Top 10 by Followers</span></div>
+          <ol class="top-list" id="topList"></ol>
+        </div>
+      </div>
+
+      <div class="analytics-grid">
+        <div class="chart-card span-4">
+          <div class="chart-header"><span class="chart-title">Tags Distribution</span></div>
+          <div class="chart-canvas-wrap" id="tagsWrap"><canvas id="chartTags"></canvas></div>
+        </div>
+        <div class="chart-card span-4">
+          <div class="chart-header"><span class="chart-title">Day of Week</span></div>
+          <div class="chart-canvas-wrap"><canvas id="chartDow"></canvas></div>
+        </div>
+        <div class="chart-card span-4">
+          <div class="chart-header"><span class="chart-title">Top Referrers</span></div>
+          <div class="chart-canvas-wrap" id="referrersWrap"><canvas id="chartReferrers"></canvas></div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="/shared/app.js"></script>
+<script>
+let allGuests = [];
+const chartInstances = {};
+
+document.addEventListener('DOMContentLoaded', async () => {
+  await ChateauApp.injectSidebar('analytics');
+  document.getElementById('reloadBtn').addEventListener('click', loadAndRender);
+  await loadAndRender();
+});
+
+async function loadAndRender() {
+  try {
+    const res = await fetch('/api/guests');
+    if (res.status === 401) { window.location.href = '/login'; return; }
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    allGuests = data.guests || [];
+    document.getElementById('headerMeta').textContent =
+      `${allGuests.length} total submissions · last refresh ${new Date().toLocaleTimeString('en-US', {hour:'2-digit', minute:'2-digit'})}`;
+    renderAll();
+  } catch (err) {
+    if (window.ChateauApp) ChateauApp.showToast('Failed to load: ' + err.message, 'error');
+    console.error('Analytics load failed:', err);
+  }
+}
+
+function renderAll() {
+  renderKPIs();
+  renderTimeline();
+  renderStatus();
+  renderCumulative();
+  renderHour();
+  renderFollowers();
+  renderTopList();
+  renderTags();
+  renderDayOfWeek();
+  renderReferrers();
+}
+
+function renderKPIs() {
+  const total = allGuests.length;
+
+  // Single source of truth: Messaging Status (driven by Invited tab actions)
+  const approved = allGuests.filter(g => g.messagingStatus === 'Approved');
+  const waitlist = allGuests.filter(g => g.messagingStatus === 'Waitlist');
+  const declined = allGuests.filter(g => g.messagingStatus === 'Declined');
+  const pending = allGuests.filter(g => !g.messagingStatus || g.messagingStatus === 'Listed' || g.messagingStatus === 'Semi Approved');
+
+  // Approval rate = Approved / Total RSVPs
+  const approvalRate = total > 0 ? Math.round(approved.length / total * 100) : 0;
+
+  // Reach (IG followers of approved guests)
+  const withFollowers = allGuests.filter(g => g.igFollowers !== null);
+  const approvedWithFollowers = approved.filter(g => g.igFollowers !== null);
+  const totalReach = approvedWithFollowers.reduce((s,g) => s + g.igFollowers, 0);
+  const avgFollowers = withFollowers.length > 0
+    ? Math.round(withFollowers.reduce((s,g) => s + g.igFollowers, 0) / withFollowers.length)
+    : 0;
+
+  setText('kpiTotal', total);
+  setText('kpiTotalMeta', `${pending.length} pending · ${waitlist.length} waitlisted · ${declined.length} declined`);
+  setText('kpiApproval', approvalRate + '%');
+  setText('kpiApprovalMeta', `${approved.length} approved of ${total}`);
+  setText('kpiReach', formatNumber(totalReach));
+  setText('kpiReachMeta', `${approvedWithFollowers.length} approved profiles`);
+  setText('kpiAvg', formatNumber(avgFollowers));
+  setText('kpiAvgMeta', `across ${withFollowers.length} profiles with data`);
+}
+
+function renderTimeline() {
+  const now = new Date();
+  const days = 30;
+  const buckets = {};
+  for (let i = days - 1; i >= 0; i--) {
+    const d = new Date(now.getTime() - i * 86400000);
+    const key = d.toISOString().substring(0, 10);
+    buckets[key] = 0;
+  }
+  for (const g of allGuests) {
+    if (!g.createdTime) continue;
+    const key = g.createdTime.substring(0, 10);
+    if (key in buckets) buckets[key]++;
+  }
+  const sorted = Object.keys(buckets);
+  const labels = sorted.map(k => formatDayLabel(k));
+  const data = sorted.map(k => buckets[k]);
+
+  setText('timelineMeta', `Last ${days} days`);
+
+  drawChart('chartTimeline', {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        label: 'Submissions', data,
+        borderColor: '#B8965A',
+        backgroundColor: 'rgba(184, 150, 90, 0.10)',
+        borderWidth: 2, fill: true, tension: 0.35,
+        pointBackgroundColor: '#B8965A',
+        pointRadius: 0, pointHoverRadius: 5
+      }]
+    },
+    options: lineChartOptions()
+  });
+}
+
+function renderStatus() {
+  // Group by Messaging Status (the workflow status from Invited tab)
+  // Pending bucket = no messaging status yet (RSVPs not yet handled) + Listed + Semi Approved
+  const counts = {
+    'Pending':0,
+    'Listed':0,
+    'Semi Approved':0,
+    'Waitlist':0,
+    'Approved':0,
+    'Declined':0
+  };
+  for (const g of allGuests) {
+    const m = g.messagingStatus;
+    if (!m) counts['Pending']++;
+    else if (m in counts) counts[m]++;
+  }
+
+  // Only show non-zero buckets to keep chart clean
+  const labels = [];
+  const data = [];
+  const colors = [];
+  const allColors = {
+    'Pending': '#8a8270',
+    'Listed': '#a59b87',
+    'Semi Approved': '#5b8db8',
+    'Waitlist': '#D4A744',
+    'Approved': '#4a7c59',
+    'Declined': '#c47466'
+  };
+  for (const [k, v] of Object.entries(counts)) {
+    if (v > 0) {
+      labels.push(k);
+      data.push(v);
+      colors.push(allColors[k]);
+    }
+  }
+
+  drawChart('chartStatus', {
+    type: 'doughnut',
+    data: {
+      labels,
+      datasets: [{
+        data,
+        backgroundColor: colors,
+        borderColor: '#FBFAF7', borderWidth: 2
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false, cutout: '62%',
+      plugins: {
+        legend: { position: 'bottom', labels: { font: { family: 'Inter', size: 11 }, color: '#4a4337', padding: 12, usePointStyle: true, pointStyle: 'circle', boxWidth: 8 } },
+        tooltip: tooltipOptions()
+      }
+    }
+  });
+}
+
+function renderCumulative() {
+  const sorted = allGuests
+    .filter(g => g.createdTime && g.messagingStatus === 'Approved')
+    .sort((a,b) => a.createdTime.localeCompare(b.createdTime));
+
+  if (sorted.length === 0) {
+    document.querySelector('#chartCumulative').parentElement.innerHTML = '<div class="empty-chart">No approvals yet</div>';
+    return;
+  }
+
+  let cum = 0;
+  const byDay = {};
+  for (const g of sorted) {
+    cum++;
+    byDay[g.createdTime.substring(0, 10)] = cum;
+  }
+  const days = Object.keys(byDay).sort();
+  const labels = days.map(formatDayLabel);
+  const data = days.map(d => byDay[d]);
+
+  drawChart('chartCumulative', {
+    type: 'line',
+    data: { labels, datasets: [{
+      label: 'Cumulative approvals', data,
+      borderColor: '#9a7d44',
+      backgroundColor: 'rgba(154, 125, 68, 0.08)',
+      borderWidth: 2, fill: true, tension: 0.2,
+      pointRadius: 0, pointHoverRadius: 5
+    }]},
+    options: lineChartOptions()
+  });
+}
+
+function renderHour() {
+  const buckets = new Array(24).fill(0);
+  for (const g of allGuests) {
+    if (!g.createdTime) continue;
+    const d = new Date(g.createdTime);
+    buckets[d.getHours()]++;
+  }
+  drawChart('chartHour', {
+    type: 'bar',
+    data: {
+      labels: buckets.map((_, i) => i.toString().padStart(2,'0')),
+      datasets: [{ label: 'Submissions', data: buckets, backgroundColor: '#B8965A', borderRadius: 3, barPercentage: 0.85 }]
+    },
+    options: barChartOptions()
+  });
+}
+
+function renderFollowers() {
+  const buckets = { '0–1K':0, '1K–10K':0, '10K–50K':0, '50K–100K':0, '100K–500K':0, '500K+':0 };
+  for (const g of allGuests) {
+    if (g.igFollowers === null) continue;
+    const f = g.igFollowers;
+    if (f < 1000) buckets['0–1K']++;
+    else if (f < 10000) buckets['1K–10K']++;
+    else if (f < 50000) buckets['10K–50K']++;
+    else if (f < 100000) buckets['50K–100K']++;
+    else if (f < 500000) buckets['100K–500K']++;
+    else buckets['500K+']++;
+  }
+  drawChart('chartFollowers', {
+    type: 'bar',
+    data: {
+      labels: Object.keys(buckets),
+      datasets: [{
+        label: 'Profiles', data: Object.values(buckets),
+        backgroundColor: ['#e0d4ba','#d4c39a','#c8b27a','#bca15a','#a98640','#8a6d2e'],
+        borderRadius: 3, barPercentage: 0.7
+      }]
+    },
+    options: barChartOptions()
+  });
+}
+
+function renderTopList() {
+  const top = allGuests.filter(g => g.igFollowers !== null)
+    .sort((a, b) => b.igFollowers - a.igFollowers).slice(0, 10);
+
+  const ol = document.getElementById('topList');
+  if (top.length === 0) {
+    ol.innerHTML = '<li style="padding: 32px 0; color: var(--ink-faint); font-style: italic; justify-content: center;">No follower data yet</li>';
+    return;
+  }
+
+  ol.innerHTML = top.map((g, i) => {
+    const initial = (g.name || '?').charAt(0).toUpperCase();
+    const avatar = g.igAvatarUrl
+      ? `<span class="avatar" style="background-image: url('/api/avatar?url=${encodeURIComponent(g.igAvatarUrl)}')"></span>`
+      : `<span class="avatar">${escapeHtml(initial)}</span>`;
+    return `<li>
+      <span class="rank">${i + 1}</span>
+      ${avatar}
+      <span class="name">${escapeHtml(g.name)}<span class="handle">@${escapeHtml(g.instagram)}</span></span>
+      <span class="followers">${formatNumber(g.igFollowers)}</span>
+    </li>`;
+  }).join('');
+}
+
+function renderTags() {
+  const counts = {};
+  for (const g of allGuests) {
+    if (!Array.isArray(g.tags)) continue;
+    for (const t of g.tags) counts[t] = (counts[t] || 0) + 1;
+  }
+  const labels = Object.keys(counts).sort((a,b) => counts[b] - counts[a]);
+  const values = labels.map(l => counts[l]);
+
+  if (labels.length === 0) {
+    document.getElementById('tagsWrap').innerHTML = '<div class="empty-chart">No tags assigned yet</div>';
+    return;
+  }
+
+  drawChart('chartTags', {
+    type: 'doughnut',
+    data: {
+      labels,
+      datasets: [{
+        data: values,
+        backgroundColor: ['#B8965A','#9a7d44','#d4b884','#7a6644','#a98640','#c8b27a','#e0d4ba','#5b8db8'],
+        borderColor: '#FBFAF7', borderWidth: 2
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false, cutout: '60%',
+      plugins: {
+        legend: { position: 'bottom', labels: { font: { family: 'Inter', size: 10 }, color: '#4a4337', padding: 8, usePointStyle: true, pointStyle: 'circle', boxWidth: 7 } },
+        tooltip: tooltipOptions()
+      }
+    }
+  });
+}
+
+function renderDayOfWeek() {
+  const labels = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const buckets = new Array(7).fill(0);
+  for (const g of allGuests) {
+    if (!g.createdTime) continue;
+    buckets[new Date(g.createdTime).getDay()]++;
+  }
+  drawChart('chartDow', {
+    type: 'bar',
+    data: { labels, datasets: [{ label: 'Submissions', data: buckets, backgroundColor: '#9a7d44', borderRadius: 3, barPercentage: 0.7 }]},
+    options: barChartOptions()
+  });
+}
+
+function renderReferrers() {
+  const counts = {};
+  for (const g of allGuests) {
+    const r = (g.referredBy || '').trim();
+    if (!r) continue;
+    counts[r] = (counts[r] || 0) + 1;
+  }
+  const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 8);
+
+  if (sorted.length === 0) {
+    document.getElementById('referrersWrap').innerHTML = '<div class="empty-chart">No referrals yet</div>';
+    return;
+  }
+
+  drawChart('chartReferrers', {
+    type: 'bar',
+    data: {
+      labels: sorted.map(s => s[0]),
+      datasets: [{ label: 'Brought', data: sorted.map(s => s[1]), backgroundColor: '#B8965A', borderRadius: 3, barPercentage: 0.7 }]
+    },
+    options: { ...barChartOptions(), indexAxis: 'y' }
+  });
+}
+
+function drawChart(canvasId, config) {
+  if (chartInstances[canvasId]) chartInstances[canvasId].destroy();
+  const ctx = document.getElementById(canvasId);
+  if (!ctx) return;
+  Chart.defaults.font.family = 'Inter, system-ui, sans-serif';
+  Chart.defaults.font.size = 11;
+  Chart.defaults.color = '#8a8270';
+  chartInstances[canvasId] = new Chart(ctx, config);
+}
+
+function lineChartOptions() {
+  return {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false }, tooltip: tooltipOptions() },
+    scales: {
+      x: { grid: { display: false }, ticks: { color: '#8a8270', maxRotation: 0, autoSkipPadding: 30 } },
+      y: { beginAtZero: true, grid: { color: 'rgba(26,22,18,0.06)' }, ticks: { color: '#8a8270', precision: 0, padding: 8 } }
+    }
+  };
+}
+
+function barChartOptions() {
+  return {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false }, tooltip: tooltipOptions() },
+    scales: {
+      x: { grid: { display: false }, ticks: { color: '#8a8270' } },
+      y: { beginAtZero: true, grid: { color: 'rgba(26,22,18,0.06)' }, ticks: { color: '#8a8270', precision: 0 } }
+    }
+  };
+}
+
+function tooltipOptions() {
+  return {
+    backgroundColor: '#1a1612', titleColor: '#F1ECDF', bodyColor: '#F1ECDF',
+    borderColor: '#B8965A', borderWidth: 1, padding: 10,
+    titleFont: { family: 'Inter', size: 11, weight: '500' },
+    bodyFont: { family: 'Inter', size: 12 },
+    displayColors: false, cornerRadius: 6
+  };
+}
+
+function setText(id, text) { const el = document.getElementById(id); if (el) el.textContent = text; }
+function escapeHtml(str) {
+  if (str === null || str === undefined) return '';
+  return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+function formatNumber(n) {
+  if (n === null || n === undefined || isNaN(n)) return '—';
+  if (n >= 1000000) return (n / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
+  if (n >= 1000) return (n / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
+  return n.toString();
+}
+function formatDayLabel(iso) {
+  const d = new Date(iso + 'T00:00:00Z');
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+</script>
+
+</body>
+</html>

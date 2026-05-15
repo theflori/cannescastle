@@ -1,0 +1,635 @@
+<!-- deploy-marker 1778406072 -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Branding · Château Privé EventOS</title>
+<meta name="robots" content="noindex,nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/shared/theme.css">
+<style>
+  /* Drop zone */
+  .upload-zone {
+    border: 2px dashed var(--hairline-strong);
+    border-radius: 12px;
+    padding: 36px 24px;
+    text-align: center;
+    background: var(--surface-1);
+    transition: all 0.2s;
+    margin-bottom: 24px;
+    cursor: pointer;
+  }
+  .upload-zone:hover, .upload-zone.dragover {
+    border-color: var(--gold);
+    background: rgba(184, 150, 90, 0.04);
+  }
+  .upload-zone .icon {
+    width: 40px; height: 40px;
+    margin: 0 auto 12px;
+    color: var(--gold);
+  }
+  .upload-zone-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 22px;
+    color: var(--ink);
+    margin-bottom: 4px;
+  }
+  .upload-zone-meta {
+    font-size: 12px;
+    color: var(--ink-faint);
+    letter-spacing: 0.04em;
+  }
+  .upload-zone input[type="file"] { display: none; }
+
+  /* Category filter pills */
+  .category-bar {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+  }
+  .cat-pill {
+    padding: 6px 14px;
+    border: 1px solid var(--hairline-strong);
+    background: var(--surface-1);
+    border-radius: 16px;
+    font-size: 12px;
+    color: var(--ink-soft);
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: 'Inter', sans-serif;
+  }
+  .cat-pill:hover { border-color: var(--gold); color: var(--gold-deep); }
+  .cat-pill.active {
+    background: var(--ink);
+    color: #fff;
+    border-color: var(--ink);
+  }
+  .cat-pill.active .count {
+    color: rgba(255,255,255,0.65);
+  }
+  .cat-pill .count {
+    margin-left: 4px;
+    color: var(--ink-faint);
+    font-size: 11px;
+  }
+
+  /* Asset grid */
+  .asset-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 16px;
+  }
+  .asset-card {
+    background: var(--surface-1);
+    border: 1px solid var(--hairline);
+    border-radius: 10px;
+    overflow: hidden;
+    transition: all 0.2s;
+    cursor: pointer;
+    position: relative;
+  }
+  .asset-card:hover {
+    box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+    border-color: var(--gold-light);
+    transform: translateY(-2px);
+  }
+  .asset-preview {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    background: var(--surface-2);
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
+    border-bottom: 1px solid var(--hairline);
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .asset-preview .file-icon {
+    color: var(--ink-faint);
+    width: 48px; height: 48px;
+  }
+  .asset-meta {
+    padding: 12px 14px;
+  }
+  .asset-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ink);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    margin-bottom: 4px;
+  }
+  .asset-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 11px;
+    color: var(--ink-faint);
+  }
+  .asset-cat {
+    display: inline-block;
+    padding: 2px 8px;
+    background: rgba(184, 150, 90, 0.12);
+    color: var(--gold-deep);
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .asset-actions {
+    position: absolute;
+    top: 8px; right: 8px;
+    display: flex; gap: 4px;
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+  .asset-card:hover .asset-actions { opacity: 1; }
+  .asset-actions button {
+    width: 28px; height: 28px;
+    background: rgba(255,255,255,0.95);
+    border: 1px solid var(--hairline);
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--ink-soft);
+    backdrop-filter: blur(8px);
+  }
+  .asset-actions button:hover { color: var(--gold-deep); border-color: var(--gold); }
+  .asset-actions button svg { width: 13px; height: 13px; }
+
+  /* Upload status */
+  .upload-status {
+    margin-top: 12px;
+    padding: 10px 14px;
+    background: var(--info-bg);
+    color: var(--info);
+    border-radius: 6px;
+    font-size: 12px;
+    display: none;
+  }
+  .upload-status.show { display: block; }
+  .upload-status.error { background: var(--error-bg); color: var(--error); }
+  .upload-status.success { background: var(--success-bg); color: var(--success); }
+
+  /* Detail modal */
+  .modal-backdrop {
+    position: fixed; inset: 0;
+    background: rgba(26, 22, 18, 0.6);
+    backdrop-filter: blur(6px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    padding: 24px;
+  }
+  .modal-backdrop.show { display: flex; }
+  .modal {
+    background: var(--surface-1);
+    border-radius: 14px;
+    max-width: 800px;
+    max-height: 90vh;
+    overflow-y: auto;
+    width: 100%;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.3);
+  }
+  .modal-image {
+    width: 100%;
+    max-height: 60vh;
+    object-fit: contain;
+    background: var(--surface-2);
+  }
+  .modal-info {
+    padding: 24px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 16px;
+    align-items: start;
+  }
+  .modal-info h3 {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 24px;
+    margin-bottom: 6px;
+  }
+  .modal-info .meta {
+    font-size: 12px;
+    color: var(--ink-faint);
+  }
+
+  /* Empty state */
+  .empty-state {
+    text-align: center;
+    padding: 80px 40px;
+    color: var(--ink-faint);
+  }
+  .empty-state .empty-icon {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 56px;
+    color: var(--gold);
+    margin-bottom: 16px;
+  }
+  .empty-state .empty-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 22px;
+    color: var(--ink);
+    margin-bottom: 8px;
+  }
+  .empty-state .empty-desc {
+    font-size: 13px;
+    max-width: 360px;
+    margin: 0 auto;
+  }
+</style>
+</head>
+<body>
+
+<div class="app-shell">
+  <div id="sidebar-mount"></div>
+
+  <main class="app-main">
+    <header class="page-header">
+      <div class="page-title-block">
+        <button class="icon-btn mobile-menu-btn" id="mobileMenuBtn" aria-label="Open menu">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+        <h1 class="page-title">Branding</h1>
+        <span class="page-subtitle" id="headerMeta">Brand assets, logos, sponsor materials</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <button class="btn" id="reloadBtn" title="Reload assets">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 4v5h-5"/></svg>
+          <span>Reload</span>
+        </button>
+      </div>
+    </header>
+
+    <div class="page-content">
+
+      <!-- Upload Zone -->
+      <label class="upload-zone" id="uploadZone">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="17 8 12 3 7 8"/>
+          <line x1="12" y1="3" x2="12" y2="15"/>
+        </svg>
+        <div class="upload-zone-title">Drop files here or click to upload</div>
+        <div class="upload-zone-meta">PNG, JPG, PDF, SVG · Max 10 MB per file</div>
+        <input type="file" id="fileInput" multiple accept="image/*,application/pdf,.svg">
+      </label>
+
+      <div class="upload-status" id="uploadStatus"></div>
+
+      <!-- Category Filter -->
+      <div class="category-bar" id="catBar">
+        <button class="cat-pill active" data-cat="all">All <span class="count" id="catCountAll">—</span></button>
+        <button class="cat-pill" data-cat="logo">Logos <span class="count" id="catCountLogo">—</span></button>
+        <button class="cat-pill" data-cat="sponsor">Sponsors <span class="count" id="catCountSponsor">—</span></button>
+        <button class="cat-pill" data-cat="brand">Brand Guidelines <span class="count" id="catCountBrand">—</span></button>
+        <button class="cat-pill" data-cat="photo">Photos <span class="count" id="catCountPhoto">—</span></button>
+        <button class="cat-pill" data-cat="other">Other <span class="count" id="catCountOther">—</span></button>
+      </div>
+
+      <!-- Asset Grid -->
+      <div id="assetContainer">
+        <div class="asset-grid" id="assetGrid"></div>
+        <div class="empty-state" id="emptyState" style="display:none">
+          <div class="empty-icon">∅</div>
+          <div class="empty-title">No assets yet</div>
+          <div class="empty-desc">Upload logos, sponsor materials, brand guidelines and photos. They'll appear here, organized by category.</div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Detail Modal -->
+<div class="modal-backdrop" id="modalBackdrop">
+  <div class="modal" id="modalContent"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="/shared/app.js"></script>
+<script>
+let allAssets = [];
+let currentCat = 'all';
+
+document.addEventListener('DOMContentLoaded', async () => {
+  await ChateauApp.injectSidebar('branding');
+  document.getElementById('reloadBtn').addEventListener('click', loadAssets);
+  bindUpload();
+  bindCategoryFilter();
+  bindModal();
+  await loadAssets();
+});
+
+// ===== LOAD =====
+async function loadAssets() {
+  try {
+    const res = await fetch('/api/assets');
+    if (res.status === 401) { window.location.href = '/login'; return; }
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || `HTTP ${res.status}`);
+    }
+    const data = await res.json();
+    allAssets = data.assets || [];
+    renderCategoryCounts();
+    renderGrid();
+  } catch (err) {
+    ChateauApp.showToast('Failed to load assets: ' + err.message, 'error');
+    document.getElementById('emptyState').style.display = 'block';
+    document.getElementById('emptyState').innerHTML =
+      '<div class="empty-icon">!</div><div class="empty-title">Storage not configured</div>' +
+      '<div class="empty-desc">' + escapeHtml(err.message) + '<br><br>Setup R2 bucket and add environment variables. See README.</div>';
+  }
+}
+
+// ===== UPLOAD =====
+function bindUpload() {
+  const zone = document.getElementById('uploadZone');
+  const input = document.getElementById('fileInput');
+
+  // Click → file picker
+  // (the label-input pattern handles this natively)
+
+  // Drag & drop
+  ['dragenter', 'dragover'].forEach(evt => {
+    zone.addEventListener(evt, e => {
+      e.preventDefault();
+      zone.classList.add('dragover');
+    });
+  });
+  ['dragleave', 'drop'].forEach(evt => {
+    zone.addEventListener(evt, e => {
+      e.preventDefault();
+      zone.classList.remove('dragover');
+    });
+  });
+  zone.addEventListener('drop', e => {
+    e.preventDefault();
+    if (e.dataTransfer.files.length > 0) handleFiles(e.dataTransfer.files);
+  });
+
+  input.addEventListener('change', e => {
+    if (e.target.files.length > 0) handleFiles(e.target.files);
+    e.target.value = ''; // reset for next pick
+  });
+}
+
+async function handleFiles(fileList) {
+  const files = Array.from(fileList);
+  const status = document.getElementById('uploadStatus');
+
+  // Validate
+  const oversized = files.filter(f => f.size > 10 * 1024 * 1024);
+  if (oversized.length > 0) {
+    showStatus('Files over 10MB skipped: ' + oversized.map(f => f.name).join(', '), 'error');
+  }
+  const valid = files.filter(f => f.size <= 10 * 1024 * 1024);
+  if (valid.length === 0) return;
+
+  showStatus(`Uploading ${valid.length} file${valid.length>1?'s':''}…`, '');
+
+  let uploaded = 0;
+  let failed = 0;
+  for (const file of valid) {
+    try {
+      const category = detectCategory(file.name, file.type);
+
+      const fd = new FormData();
+      fd.append('file', file);
+      fd.append('name', file.name);
+      fd.append('category', category);
+
+      const res = await fetch('/api/assets/upload', {
+        method: 'POST',
+        body: fd
+      });
+      if (!res.ok) {
+        const e = await res.json().catch(() => ({}));
+        throw new Error(e.error || 'HTTP ' + res.status);
+      }
+      uploaded++;
+    } catch (err) {
+      console.error('Upload failed for', file.name, err);
+      failed++;
+    }
+  }
+
+  if (failed === 0) {
+    showStatus(`Uploaded ${uploaded} file${uploaded>1?'s':''}`, 'success');
+  } else {
+    showStatus(`Uploaded ${uploaded}, failed ${failed}`, failed === valid.length ? 'error' : '');
+  }
+
+  await loadAssets();
+  setTimeout(() => hideStatus(), 4000);
+}
+
+function showStatus(msg, type) {
+  const el = document.getElementById('uploadStatus');
+  el.textContent = msg;
+  el.className = 'upload-status show ' + (type || '');
+}
+function hideStatus() {
+  document.getElementById('uploadStatus').className = 'upload-status';
+}
+
+function detectCategory(name, mime) {
+  const lower = name.toLowerCase();
+  if (lower.includes('logo')) return 'logo';
+  if (lower.includes('sponsor')) return 'sponsor';
+  if (lower.includes('brand') || lower.includes('guideline')) return 'brand';
+  if (mime.startsWith('image/')) return 'photo';
+  return 'other';
+}
+
+// ===== RENDER =====
+function renderCategoryCounts() {
+  const counts = { all: allAssets.length, logo: 0, sponsor: 0, brand: 0, photo: 0, other: 0 };
+  for (const a of allAssets) {
+    if (counts[a.category] !== undefined) counts[a.category]++;
+  }
+  document.getElementById('catCountAll').textContent = counts.all;
+  document.getElementById('catCountLogo').textContent = counts.logo;
+  document.getElementById('catCountSponsor').textContent = counts.sponsor;
+  document.getElementById('catCountBrand').textContent = counts.brand;
+  document.getElementById('catCountPhoto').textContent = counts.photo;
+  document.getElementById('catCountOther').textContent = counts.other;
+  document.getElementById('headerMeta').textContent =
+    `${counts.all} asset${counts.all !== 1 ? 's' : ''}`;
+}
+
+function renderGrid() {
+  const grid = document.getElementById('assetGrid');
+  const empty = document.getElementById('emptyState');
+
+  const filtered = currentCat === 'all'
+    ? allAssets
+    : allAssets.filter(a => a.category === currentCat);
+
+  if (filtered.length === 0) {
+    grid.innerHTML = '';
+    empty.style.display = 'block';
+    if (allAssets.length > 0 && currentCat !== 'all') {
+      empty.querySelector('.empty-title').textContent = 'No assets in this category';
+      empty.querySelector('.empty-desc').textContent = '';
+    }
+    return;
+  }
+
+  empty.style.display = 'none';
+  grid.innerHTML = filtered.map(assetCardHtml).join('');
+
+  // Bind click handlers
+  grid.querySelectorAll('.asset-card').forEach(card => {
+    card.addEventListener('click', e => {
+      if (e.target.closest('.asset-actions')) return;
+      openModal(card.dataset.id);
+    });
+  });
+  grid.querySelectorAll('.btn-download').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      const a = allAssets.find(x => x.id === btn.dataset.id);
+      if (a) window.open(a.url, '_blank');
+    });
+  });
+  grid.querySelectorAll('.btn-delete').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      deleteAsset(btn.dataset.id);
+    });
+  });
+}
+
+function assetCardHtml(a) {
+  const isImage = (a.contentType || '').startsWith('image/');
+  const previewStyle = isImage ? `background-image: url('${escapeAttr(a.url)}')` : '';
+  const fileIconHtml = !isImage ? `<svg class="file-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>` : '';
+
+  return `
+    <div class="asset-card" data-id="${a.id}">
+      <div class="asset-preview" style="${previewStyle}">
+        ${fileIconHtml}
+      </div>
+      <div class="asset-meta">
+        <div class="asset-name">${escapeHtml(a.name)}</div>
+        <div class="asset-info">
+          <span class="asset-cat">${categoryLabel(a.category)}</span>
+          <span>${formatSize(a.size)}</span>
+        </div>
+      </div>
+      <div class="asset-actions">
+        <button class="btn-download" data-id="${a.id}" title="Download">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        </button>
+        <button class="btn-delete" data-id="${a.id}" title="Delete">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/></svg>
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+function categoryLabel(cat) {
+  return ({ logo: 'Logo', sponsor: 'Sponsor', brand: 'Guidelines', photo: 'Photo', other: 'Other' })[cat] || cat;
+}
+
+function bindCategoryFilter() {
+  document.getElementById('catBar').addEventListener('click', e => {
+    const btn = e.target.closest('.cat-pill');
+    if (!btn) return;
+    document.querySelectorAll('.cat-pill').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentCat = btn.dataset.cat;
+    renderGrid();
+  });
+}
+
+// ===== MODAL =====
+function bindModal() {
+  document.getElementById('modalBackdrop').addEventListener('click', e => {
+    if (e.target.id === 'modalBackdrop') closeModal();
+  });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closeModal();
+  });
+}
+function openModal(id) {
+  const a = allAssets.find(x => x.id === id);
+  if (!a) return;
+  const isImage = (a.contentType || '').startsWith('image/');
+  const modal = document.getElementById('modalContent');
+  modal.innerHTML = `
+    ${isImage ? `<img src="${escapeAttr(a.url)}" class="modal-image" alt="${escapeAttr(a.name)}">` : `<div style="padding:80px;text-align:center;background:var(--surface-2)"><svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" style="color:var(--ink-faint)"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg><div style="margin-top:12px;color:var(--ink-faint);font-size:13px">No preview available</div></div>`}
+    <div class="modal-info">
+      <div>
+        <h3>${escapeHtml(a.name)}</h3>
+        <div class="meta">${categoryLabel(a.category)} · ${formatSize(a.size)} · uploaded ${formatDate(a.uploadedAt)}</div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <a href="${escapeAttr(a.url)}" target="_blank" class="btn">Download</a>
+      </div>
+    </div>
+  `;
+  document.getElementById('modalBackdrop').classList.add('show');
+}
+function closeModal() {
+  document.getElementById('modalBackdrop').classList.remove('show');
+}
+
+// ===== DELETE =====
+async function deleteAsset(id) {
+  if (!confirm('Delete this asset permanently?')) return;
+  try {
+    const res = await fetch('/api/assets/delete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id })
+    });
+    if (!res.ok) throw new Error('Delete failed');
+    ChateauApp.showToast('Asset deleted', 'success');
+    await loadAssets();
+  } catch (err) {
+    ChateauApp.showToast('Delete failed: ' + err.message, 'error');
+  }
+}
+
+// ===== UTILS =====
+function escapeHtml(s) {
+  if (s === null || s === undefined) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+function escapeAttr(s) { return escapeHtml(s); }
+function formatSize(bytes) {
+  if (!bytes) return '—';
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+  return (bytes / 1024 / 1024).toFixed(1) + ' MB';
+}
+function formatDate(iso) {
+  if (!iso) return '';
+  try {
+    const d = new Date(iso);
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  } catch { return ''; }
+}
+</script>
+
+</body>
+</html>

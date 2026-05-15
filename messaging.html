@@ -1,0 +1,2093 @@
+<!-- deploy-marker 1778520624 -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Invites · Château Privé EventOS</title>
+<meta name="robots" content="noindex,nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/shared/theme.css">
+<style>
+  /* Filter pills bar */
+  .msg-filter-bar {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 18px;
+  }
+  .msg-pill {
+    padding: 6px 14px;
+    border: 1px solid var(--hairline-strong);
+    background: var(--surface-1);
+    border-radius: 16px;
+    font-size: 12px;
+    color: var(--ink-soft);
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: 'Inter', sans-serif;
+    white-space: nowrap;
+  }
+  .msg-pill:hover { border-color: var(--gold); color: var(--gold-deep); }
+  .msg-pill.active {
+    background: var(--ink);
+    color: #fff;
+    border-color: var(--ink);
+  }
+  .msg-pill .count {
+    margin-left: 5px;
+    font-size: 11px;
+    color: var(--ink-faint);
+    opacity: 0.85;
+  }
+  .msg-pill.active .count { color: rgba(255,255,255,0.7); }
+
+  /* Status pills (within table) - reuse from theme but add Semi Approved */
+  .pill-listed { background: rgba(138, 130, 112, 0.18); color: var(--ink-soft); }
+  .pill-semi   { background: rgba(91, 141, 184, 0.18); color: #4a7090; }
+  .pill-mwait  { background: var(--warning-bg); color: var(--gold-deep); }
+  .pill-mapprv { background: var(--success-bg); color: var(--success); }
+  .pill-mdecl  { background: var(--error-bg); color: var(--error); }
+
+  /* Issues filter pill - red accent */
+  .pill-issues { border-color: rgba(196, 116, 102, 0.4); color: #c47466; }
+  .pill-issues:hover { border-color: #c47466; color: #b35e4f; }
+  .pill-issues.active { background: #c47466; border-color: #c47466; color: #fff; }
+  .pill-issues.active .count { color: rgba(255,255,255,0.7); }
+
+  /* Error / warning dot before name */
+  .send-status-dot {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1;
+    flex-shrink: 0;
+    margin-right: 8px;
+    cursor: help;
+  }
+  .send-status-dot.error {
+    background: #c47466;
+    color: #fff;
+  }
+  .send-status-dot.warning {
+    background: #D4A744;
+    color: #4a4337;
+  }
+
+  /* Contact lines under name */
+  .contact-line {
+    display: block;
+    font-size: 11px;
+    color: var(--ink-faint);
+    line-height: 1.5;
+    margin-top: 1px;
+  }
+
+  /* Per-row send button */
+  .send-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 10px;
+    border: 1px solid var(--ink);
+    background: var(--ink);
+    color: #fff;
+    border-radius: 6px;
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: 'Inter', sans-serif;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+  .send-btn:hover { background: var(--gold-deep); border-color: var(--gold-deep); }
+  .send-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .send-btn svg { width: 11px; height: 11px; }
+  .send-btn.confirm-btn {
+    background: var(--gold);
+    border-color: var(--gold);
+    color: var(--ink);
+    font-weight: 600;
+  }
+  .send-btn.confirm-btn:hover {
+    background: var(--gold-deep);
+    border-color: var(--gold-deep);
+    color: #fff;
+  }
+  .send-btn.waitlist-btn {
+    background: transparent;
+    border-color: var(--hairline-strong, rgba(26,22,18,0.22));
+    color: var(--ink-soft, #4a4337);
+    font-weight: 500;
+  }
+  .send-btn.waitlist-btn:hover {
+    background: rgba(212, 167, 68, 0.12);
+    border-color: #D4A744;
+    color: #9a7d44;
+  }
+  .action-btn-group {
+    display: inline-flex;
+    gap: 4px;
+    align-items: center;
+  }
+
+  /* Status menu styling - reuse from guests page */
+  .status-menu {
+    position: absolute;
+    background: var(--surface-1);
+    border: 1px solid var(--hairline);
+    border-radius: 8px;
+    padding: 4px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.10);
+    z-index: 50;
+    min-width: 180px;
+  }
+  .status-menu button {
+    display: block;
+    width: 100%;
+    text-align: left;
+    background: none;
+    border: none;
+    padding: 7px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    color: var(--ink);
+  }
+  .status-menu button:hover { background: var(--surface-2); }
+  .status-menu button .dot {
+    display: inline-block;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    margin-right: 7px;
+    vertical-align: middle;
+  }
+  .status-menu .divider {
+    height: 1px;
+    background: var(--hairline);
+    margin: 4px 0;
+  }
+  .status-menu .clear-btn { color: var(--error); font-size: 11px; }
+
+  /* Empty state */
+  .empty-state {
+    text-align: center;
+    padding: 80px 40px;
+    color: var(--ink-faint);
+  }
+  .empty-state .empty-icon {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 56px;
+    color: var(--gold);
+    margin-bottom: 16px;
+  }
+  .empty-state .empty-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 22px;
+    color: var(--ink);
+    margin-bottom: 8px;
+  }
+  .empty-state .empty-desc {
+    font-size: 13px;
+    max-width: 420px;
+    margin: 0 auto;
+    line-height: 1.5;
+  }
+
+  /* Bulk send bar at bottom when items selected */
+  /* Bulk action bar — uses global .bulk-bar from theme.css (fixed bottom) */
+
+  /* Table column widths specific to messaging table */
+  .data-table .col-msgstatus { width: 145px; }
+  .data-table .col-laststatus { display: none; }
+  .data-table .col-send { width: 200px; padding-right: 12px; text-align: right; }
+  .data-table .col-ig { width: 180px; max-width: 180px; }
+  .data-table .col-tags { width: 110px; }
+  .data-table .col-submitted { width: 65px; }
+
+  @media (max-width: 1280px) {
+    .data-table .col-tags { display: none; }
+  }
+  @media (max-width: 1100px) {
+    .data-table .col-submitted { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app-shell">
+  <main class="app-main">
+    <header class="page-header">
+      <div class="page-title-block">
+        <button class="icon-btn mobile-menu-btn" id="mobileMenuBtn" aria-label="Open menu">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+        <h1 class="page-title">Invites</h1>
+        <span class="page-subtitle" id="headerMeta">Loading…</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <button class="btn" id="reloadBtn" title="Reload from Airtable">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 4v5h-5"/></svg>
+          <span>Reload</span>
+        </button>
+      </div>
+    </header>
+
+    <div class="page-content">
+      <!-- SMS AUTO-SEND NOTE -->
+      <div style="margin:0 0 16px;padding:10px 14px;background:rgba(184,150,90,0.08);border-left:3px solid #b8965a;border-radius:0 4px 4px 0;font-size:12px;color:#6b5430;line-height:1.4">
+        Auto-send delivers SMS only to <strong>+49 (Germany)</strong>. International recipients get email only. Use <strong>Send international SMS</strong> below to dispatch manually per country.
+      </div>
+
+      
+
+      <!-- Search + filters (matches Guests page filtering) -->
+      <div class="filter-bar" style="margin-bottom:14px">
+        <div class="grow">
+          <input type="text" class="input input-search" id="searchInput" placeholder="Search by name, email, IG, company, referrer…">
+        </div>
+        <input type="number" class="input" id="minFollowers" placeholder="Min followers" min="0" style="width:130px">
+        <select class="input" id="followersFilter" style="width:auto" title="Filter by follower count">
+          <option value="">All followers</option>
+          <option value="over5k">Over 5K</option>
+          <option value="under5k">Under 5K</option>
+          <option value="nodata">No IG data</option>
+        </select>
+        <select class="input" id="privacyFilter" style="width:auto" title="Filter by Instagram profile privacy">
+          <option value="">All privacy</option>
+          <option value="public">Public only</option>
+          <option value="private">Private only</option>
+          <option value="unknown">Unknown</option>
+        </select>
+        <select class="input" id="importanceFilter" style="width:auto" title="Filter by Importance">
+          <option value="">All importance</option>
+          <option value="VIP/Car">VIP/Car</option>
+          <option value="Tier 1">Tier 1</option>
+          <option value="Tier 2">Tier 2</option>
+          <option value="Tier 3">Tier 3</option>
+          <option value="__none__">— Unset —</option>
+        </select>
+        <select class="input" id="sortPreset" style="width:auto">
+          <option value="default">Default sort</option>
+          <option value="createdTime:desc">Newest first</option>
+          <option value="createdTime:asc">Oldest first</option>
+          <option value="igFollowers:desc">Most followers</option>
+          <option value="igFollowers:asc">Least followers</option>
+          <option value="name:asc">Name A→Z</option>
+          <option value="name:desc">Name Z→A</option>
+          <option value="privacy:asc">Private first</option>
+          <option value="privacy:desc">Public first</option>
+        </select>
+        <button class="btn btn-ghost btn-sm" id="resetFiltersBtn">Reset</button>
+        <div style="display:flex;align-items:center;gap:6px;padding:4px 8px;background:rgba(184,150,90,0.1);border:1px solid rgba(184,150,90,0.3);border-radius:4px" title="Quickly select the first N visible guests for batch send">
+          <span style="font-size:11px;color:#6b6b66;font-weight:500">SELECT</span>
+          <button class="btn btn-ghost btn-sm" data-msg-select-n="10" style="padding:3px 9px;min-width:auto">10</button>
+          <button class="btn btn-ghost btn-sm" data-msg-select-n="20" style="padding:3px 9px;min-width:auto">20</button>
+          <button class="btn btn-ghost btn-sm" data-msg-select-n="50" style="padding:3px 9px;min-width:auto">50</button>
+          <button class="btn btn-ghost btn-sm" data-msg-select-n="100" style="padding:3px 9px;min-width:auto">100</button>
+        </div>
+        <button class="btn btn-ghost btn-sm" id="exportCsvBtn" title="Export visible invites to CSV (respects filter pill + search)" style="margin-left:auto">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13" style="margin-right:5px;vertical-align:-2px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Export CSV <span id="exportCount" style="opacity:0.6;margin-left:4px"></span>
+        </button>
+      </div>
+
+      <!-- Filter pills -->
+      <div class="msg-filter-bar" id="filterBar">
+        <button class="msg-pill active" data-filter="all">All <span class="count" id="cntAll">—</span></button>
+        <button class="msg-pill" data-filter="pending">Pending <span class="count" id="cntPending">—</span></button>
+        <button class="msg-pill" data-filter="Listed">Listed <span class="count" id="cntListed">—</span></button>
+        <button class="msg-pill" data-filter="Semi Approved">Semi Approved <span class="count" id="cntSemi">—</span></button>
+        <button class="msg-pill" data-filter="Waitlist">Waitlist <span class="count" id="cntWait">—</span></button>
+        <button class="msg-pill" data-filter="Approved">Approved <span class="count" id="cntApproved">—</span></button>
+        <button class="msg-pill" data-filter="Declined">Declined <span class="count" id="cntDeclined">—</span></button>
+        <button class="msg-pill" data-filter="checkedin" style="color:#1f7a3c" title="Show guests who have already checked in at the event">✓ Checked In <span class="count" id="cntCheckedIn">—</span></button>
+        <button class="msg-pill" data-filter="notcheckedin" title="Approved guests who haven't shown up yet">Not Checked In <span class="count" id="cntNotCheckedIn">—</span></button>
+        <button class="msg-pill pill-issues" data-filter="issues" title="Show only guests where the last send had problems">⚠ Issues <span class="count" id="cntIssues">—</span></button>
+      </div>
+
+      <!-- Empty state -->
+      <div class="empty-state" id="emptyState" style="display:none">
+        <div class="empty-icon">∅</div>
+        <div class="empty-title">No guests in invites yet</div>
+        <div class="empty-desc">
+          Go to the <a href="/guests" style="color: var(--gold-deep)">Guests page</a>,
+          select people you want to communicate with, and click "List for Invites".
+          They'll appear here for SMS &amp; email.
+        </div>
+      </div>
+
+      <!-- Table -->
+      <div class="card" id="tableCard">
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th class="col-check">
+                  <input type="checkbox" id="selectAll" aria-label="Select all" />
+                </th>
+                <th class="col-name sortable" data-sort="name">Name<span class="sort-arrow"></span></th>
+                <th class="col-ig sortable" data-sort="instagram">Instagram<span class="sort-arrow"></span></th>
+                <th class="col-followers sortable" data-sort="igFollowers" style="text-align:right">Followers<span class="sort-arrow"></span></th>
+                <th class="col-msgstatus sortable" data-sort="messagingStatus">Invite Status<span class="sort-arrow"></span></th>
+                <th class="col-laststatus">Guest Status</th>
+                <th class="col-tags sortable" data-sort="referredBy">Referred By<span class="sort-arrow"></span></th>
+                <th class="col-submitted sortable" data-sort="createdTime">Date<span class="sort-arrow"></span></th>
+                <th class="col-send"></th>
+              </tr>
+            </thead>
+            <tbody id="tbody"></tbody>
+          </table>
+        </div>
+
+        <!-- Bulk action bar (uses global .bulk-bar from theme.css - fixed bottom) -->
+        <div class="bulk-bar hidden" id="bulkBar">
+          <span class="count" id="bulkCount">0 selected</span>
+          <select class="input" id="bulkStatus" style="width:auto;background:rgba(255,255,255,0.1);color:#fff;border-color:rgba(255,255,255,0.25);font-size:12px;padding:6px 10px">
+            <option value="">Set status…</option>
+            <option value="Listed">Listed</option>
+            <option value="Semi Approved">Semi Approved</option>
+            <option value="Waitlist">Waitlist</option>
+            <option value="Approved">Approved</option>
+            <option value="Declined">Declined</option>
+            <option value="__remove__">— Remove from invites</option>
+          </select>
+          <select class="input" id="bulkImportance" style="width:auto;background:rgba(255,255,255,0.1);color:#fff;border-color:rgba(255,255,255,0.25);font-size:12px;padding:6px 10px" title="Set Importance for all selected">
+            <option value="">Set importance…</option>
+            <option value="VIP/Car">VIP/Car</option>
+            <option value="Tier 1">Tier 1</option>
+            <option value="Tier 2">Tier 2</option>
+            <option value="Tier 3">Tier 3</option>
+            <option value="__clear__">— Clear —</option>
+          </select>
+          <button class="btn" id="bulkSendOnly" title="Send messages based on each guest's current Messaging Status">Resend</button>
+          <button class="btn" id="bulkWaitlist" title="Set status to Waitlist + send waitlist email and SMS" style="border-color:#D4A744;color:#D4A744">Waitlist &amp; send</button>
+          <button class="btn btn-gold" id="bulkConfirm" title="Set status to Approved + send confirmation email and SMS (no QR)">Confirm &amp; send</button>
+          <button class="btn" id="bulkConfirmQr" title="Set status to Approved + send confirmation email + SMS + QR access email" style="background:#b8965a;border-color:#b8965a;color:#fff">Confirm &amp; send QR</button>
+          <button class="btn" id="bulkClear">Cancel</button>
+        </div>
+      </div>
+
+      <!-- MAINTENANCE — utility actions like phone cleanup -->
+      <div class="card maintenance-section" id="maintenanceSection" style="margin-top:28px;padding:20px 24px;border:1px solid var(--hairline);background:#fff;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap">
+        <div style="flex:1;min-width:240px">
+          <div style="font-family:'Inter',sans-serif;font-size:11px;color:var(--ink-soft);letter-spacing:2px;text-transform:uppercase;margin-bottom:6px">Maintenance</div>
+          <div style="font-size:14px;color:var(--ink);font-weight:500;margin-bottom:4px">Clean up phone numbers</div>
+          <div style="font-size:12px;color:var(--ink-soft);line-height:1.5">Removes spaces, dashes, parens. Detects country codes from email domains. Shows a preview before applying.</div>
+        </div>
+        <button class="btn" id="btnPhoneCleanup" style="border-color:var(--ink);color:var(--ink)">Review phone numbers</button>
+      </div>
+
+      <!-- INTERNATIONAL SMS RESEND -->
+      <div class="card maintenance-section" id="intlSmsSection" style="margin-top:14px;padding:20px 24px;border:1px solid var(--hairline);background:#fff;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap">
+        <div style="flex:1;min-width:240px">
+          <div style="font-family:'Inter',sans-serif;font-size:11px;color:var(--ink-soft);letter-spacing:2px;text-transform:uppercase;margin-bottom:6px">Manual · International SMS</div>
+          <div style="font-size:14px;color:var(--ink);font-weight:500;margin-bottom:4px">Send SMS to international guests</div>
+          <div style="font-size:12px;color:var(--ink-soft);line-height:1.5">Auto-send only delivers SMS to +49 (DE). Use this to manually send the confirmation SMS to Approved guests in other countries, filterable by country code.</div>
+        </div>
+        <button class="btn" id="btnIntlSmsResend" style="border-color:var(--ink);color:var(--ink)">Send international SMS…</button>
+      </div>
+
+      <!-- BROADCAST ACTIONS — to all Approved guests -->
+      <div class="card broadcast-section" id="broadcastSection" style="margin-top:28px;padding:24px;border:1px solid var(--hairline);background:rgba(184,150,90,0.04)">
+        <div style="display:flex;align-items:baseline;justify-content:space-between;gap:16px;margin-bottom:18px;flex-wrap:wrap">
+          <div>
+            <h2 style="margin:0 0 4px;font-family:'Inter',sans-serif;font-size:14px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--ink)">Broadcast actions</h2>
+            <p style="margin:0;font-size:13px;color:var(--ink-soft);line-height:1.5">Send to <strong id="broadcastCount">—</strong> approved guests.</p>
+          </div>
+        </div>
+
+        <div class="broadcast-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          <!-- Event Update -->
+          <div class="broadcast-card" style="padding:18px;background:#fff;border:1px solid var(--hairline);border-radius:6px">
+            <div style="font-family:'Inter',sans-serif;font-size:11px;color:#D4A744;letter-spacing:2px;text-transform:uppercase;margin-bottom:6px">Event update</div>
+            <div style="font-size:14px;color:var(--ink);margin-bottom:6px;font-weight:500">Notify of date/time change</div>
+            <div style="font-size:12px;color:var(--ink-soft);line-height:1.55;margin-bottom:14px">Sends updated event details (no address). Use if the event is moved.</div>
+            <div style="font-size:11px;color:var(--ink-faint);margin-bottom:14px" id="eventUpdateMeta">—</div>
+            <button class="btn" id="btnEventUpdate" style="width:100%;border-color:#D4A744;color:#D4A744">Send event update</button>
+          </div>
+
+          <!-- 24h Reminder -->
+          <div class="broadcast-card" style="padding:18px;background:#fff;border:1px solid var(--hairline);border-radius:6px">
+            <div style="font-family:'Inter',sans-serif;font-size:11px;color:var(--gold-deep);letter-spacing:2px;text-transform:uppercase;margin-bottom:6px">24h reminder</div>
+            <div style="font-size:14px;color:var(--ink);margin-bottom:6px;font-weight:500">Send the day before event</div>
+            <div style="font-size:12px;color:var(--ink-soft);line-height:1.55;margin-bottom:14px"><strong style="color:#c47466">REVEALS the address</strong> + dress code reminder. Only use on the day before.</div>
+            <div style="font-size:11px;color:var(--ink-faint);margin-bottom:14px" id="reminder24hMeta">—</div>
+            <button class="btn btn-gold" id="btn24hReminder" style="width:100%">Send 24h reminder</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- TEST SEND -->
+      <div class="card maintenance-section" style="margin-top:14px;padding:20px 24px;border:1px solid var(--hairline);background:#fff">
+        <div style="font-family:'Inter',sans-serif;font-size:11px;color:var(--ink-faint);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px">Preview · Test send</div>
+        <div style="font-size:12px;color:var(--ink-soft);line-height:1.5;margin-bottom:14px">Send a template to your own email/phone with mock data. Does NOT touch real guests in Airtable.</div>
+        <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+          <input id="testEmail" type="email" class="input" placeholder="your-email@example.com" style="flex:2;min-width:200px;padding:8px 12px;font-size:13px">
+          <input id="testPhone" type="tel" class="input" placeholder="+49… (optional, for SMS)" style="flex:1;min-width:160px;padding:8px 12px;font-size:13px">
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-ghost" data-test-type="confirmation" style="padding:8px 14px;font-size:12px">Test Confirmation</button>
+          <button class="btn btn-ghost" data-test-type="waitlist" style="padding:8px 14px;font-size:12px">Test Waitlist</button>
+          <button class="btn btn-ghost" data-test-type="reminder" style="padding:8px 14px;font-size:12px">Test Reminder + QR</button>
+          <button class="btn btn-ghost" data-test-type="list-closed" style="padding:8px 14px;font-size:12px;border-color:#B8965A;color:#B8965A">Test List-Closed</button>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- PHONE CLEANUP MODAL -->
+<div class="modal-overlay" id="phoneModal" style="display:none;position:fixed;inset:0;background:rgba(15,12,9,0.55);z-index:1000;align-items:flex-start;justify-content:center;padding:40px 20px;overflow-y:auto">
+  <div style="background:#fff;width:100%;max-width:980px;border-radius:6px;box-shadow:0 20px 60px rgba(0,0,0,0.3);overflow:hidden">
+    <div style="padding:24px 28px;border-bottom:1px solid var(--hairline);display:flex;align-items:center;justify-content:space-between">
+      <div>
+        <h2 style="margin:0;font-family:'Inter',sans-serif;font-size:18px;font-weight:600;color:var(--ink)">Phone number cleanup</h2>
+        <p style="margin:4px 0 0;font-size:13px;color:var(--ink-soft)" id="phoneModalSummary">Loading…</p>
+      </div>
+      <button class="btn btn-ghost" id="closePhoneModal">Close</button>
+    </div>
+
+    <div style="padding:18px 28px;background:#fafaf7;border-bottom:1px solid var(--hairline);display:flex;gap:14px;font-size:12px;flex-wrap:wrap">
+      <div><span style="display:inline-block;width:10px;height:10px;background:#4a7c59;border-radius:50%;vertical-align:-1px;margin-right:6px"></span><strong id="phStatOk">0</strong> Valid (already / formatted)</div>
+      <div><span style="display:inline-block;width:10px;height:10px;background:#5b8db8;border-radius:50%;vertical-align:-1px;margin-right:6px"></span><strong id="phStatGuessed">0</strong> Detected from email</div>
+      <div><span style="display:inline-block;width:10px;height:10px;background:#D4A744;border-radius:50%;vertical-align:-1px;margin-right:6px"></span><strong id="phStatLikely">0</strong> Likely match (verify)</div>
+      <div><span style="display:inline-block;width:10px;height:10px;background:#c47466;border-radius:50%;vertical-align:-1px;margin-right:6px"></span><strong id="phStatReview">0</strong> Needs manual review</div>
+    </div>
+
+    <div id="phoneTableWrap" style="max-height:60vh;overflow-y:auto">
+      <table class="data-table" style="width:100%">
+        <thead style="position:sticky;top:0;background:#fafaf7;z-index:1">
+          <tr>
+            <th style="width:32px;padding:8px 12px"><input type="checkbox" id="phSelectAll" checked></th>
+            <th>Name</th>
+            <th>Current phone</th>
+            <th>Will become</th>
+            <th>Note</th>
+          </tr>
+        </thead>
+        <tbody id="phoneTableBody"></tbody>
+      </table>
+    </div>
+
+    <div style="padding:18px 28px;border-top:1px solid var(--hairline);display:flex;align-items:center;justify-content:space-between;background:#fafaf7">
+      <div style="font-size:12px;color:var(--ink-soft)" id="phSelectedCount">0 selected</div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-ghost" id="phCancelBtn">Cancel</button>
+        <button class="btn btn-gold" id="phApplyBtn">Apply selected</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/shared/app.js"></script>
+<!-- INTERNATIONAL SMS RESEND MODAL -->
+<div class="modal-overlay" id="intlSmsModal" style="display:none;position:fixed;inset:0;background:rgba(15,12,9,0.55);z-index:1000;align-items:flex-start;justify-content:center;padding:40px 20px;overflow-y:auto">
+  <div style="background:#fff;width:100%;max-width:780px;border-radius:6px;box-shadow:0 20px 60px rgba(0,0,0,0.3);overflow:hidden">
+    <div style="padding:24px 28px;border-bottom:1px solid var(--hairline);display:flex;align-items:center;justify-content:space-between">
+      <div>
+        <h2 style="margin:0;font-family:'Inter',sans-serif;font-size:18px;font-weight:600;color:var(--ink)">International SMS resend</h2>
+        <p style="margin:4px 0 0;font-size:13px;color:var(--ink-soft)" id="intlSmsModalSummary">Loading…</p>
+      </div>
+      <button class="btn btn-ghost" id="closeIntlSmsModal">Close</button>
+    </div>
+
+    <div style="padding:18px 28px;background:#fafaf7;border-bottom:1px solid var(--hairline);font-size:12px;color:var(--ink-soft);line-height:1.5">
+      Sends the confirmation SMS (incl. spam-folder hint) to selected <strong>Approved</strong> guests with non-DE phone numbers. Email is <strong>not</strong> resent. Use the country filter to send batch-by-batch (e.g. only Italy, only UAE).
+    </div>
+
+    <div id="intlCountryFilterBar" style="padding:12px 28px;background:#fff;border-bottom:1px solid var(--hairline);display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+      <span style="font-size:11px;color:var(--ink-soft);letter-spacing:1px;text-transform:uppercase;margin-right:4px">Country:</span>
+      <div id="intlCountryChips" style="display:flex;gap:6px;flex-wrap:wrap"></div>
+    </div>
+
+    <div id="intlSmsTableWrap" style="max-height:55vh;overflow-y:auto">
+      <table class="data-table" style="width:100%">
+        <thead style="position:sticky;top:0;background:#fafaf7;z-index:1">
+          <tr>
+            <th style="width:32px;padding:8px 12px"><input type="checkbox" id="intlSmsSelectAll" checked></th>
+            <th>Name</th>
+            <th>Phone</th>
+            <th>Country</th>
+          </tr>
+        </thead>
+        <tbody id="intlSmsTableBody"></tbody>
+      </table>
+    </div>
+
+    <div style="padding:18px 28px;border-top:1px solid var(--hairline);display:flex;align-items:center;justify-content:space-between;background:#fafaf7">
+      <div style="font-size:12px;color:var(--ink-soft)" id="intlSmsSelectedCount">0 selected</div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-ghost" id="intlSmsCancelBtn">Cancel</button>
+        <button class="btn btn-gold" id="intlSmsSendBtn">Send SMS to selected</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const App = window.ChateauApp;
+const { showToast, escapeHtml, escapeAttr, formatNumber, formatDate, injectSidebar, renderFitIndicator, exportToCsv } = App;
+
+// ============== STATE ==============
+const MSG_STATUS_OPTIONS = ['Listed', 'Semi Approved', 'Waitlist', 'Approved', 'Declined'];
+const MSG_PILL = {
+  'Listed':       'pill-listed',
+  'Semi Approved':'pill-semi',
+  'Waitlist':     'pill-mwait',
+  'Approved':     'pill-mapprv',
+  'Declined':     'pill-mdecl'
+};
+const MSG_DOT = {
+  'Listed':       '#8a8270',
+  'Semi Approved':'#5b8db8',
+  'Waitlist':     '#D4A744',
+  'Approved':     '#4a7c59',
+  'Declined':     '#c47466'
+};
+
+let allGuests = [];
+let messagingGuests = [];
+let lastRenderedRows = []; // tracked for CSV export
+let currentFilter = 'all';
+let searchQuery = '';
+let privacyFilter = '';
+let followersFilter = '';
+let minFollowers = 0;
+let importanceFilter = '';
+let sortKey = 'default';  // 'default' = Approved-first stack-order; otherwise column name
+let sortDir = 'asc';
+let selectedIds = new Set();
+
+// ============== INIT ==============
+document.addEventListener('DOMContentLoaded', async () => {
+  await injectSidebar('messaging');
+  document.getElementById('reloadBtn').addEventListener('click', loadGuests);
+  bindFilters();
+  bindBulkBar();
+  bindBroadcastButtons();
+  bindPhoneCleanup();
+  bindIntlSmsResend();
+  bindTestSend();
+  bindCsvExport();
+  await loadGuests();
+});
+
+function bindCsvExport() {
+  document.getElementById('exportCsvBtn').addEventListener('click', () => {
+    if (!lastRenderedRows || lastRenderedRows.length === 0) {
+      showToast('No guests match the current filters', 'error');
+      return;
+    }
+    const columns = [
+      { key: 'name', label: 'Full Name' },
+      { key: 'email', label: 'Email' },
+      { key: 'phone', label: 'Phone' },
+      { key: 'instagram', label: 'Instagram' },
+      { key: 'igFollowers', label: 'IG Followers' },
+      { key: 'igIsPrivate', label: 'IG Private', format: v => v === true ? 'yes' : v === false ? 'no' : '' },
+      { key: 'company', label: 'Company / Industry' },
+      { key: 'referredBy', label: 'Referred By' },
+      { key: 'messagingStatus', label: 'Messaging Status', format: v => v || 'Pending' },
+      { key: 'tags', label: 'Tags' },
+      { key: 'importance', label: 'Importance' },
+      { key: 'hasPaid', label: 'Paid', format: v => v ? 'yes' : 'no' },
+      { key: 'paidAt', label: 'Paid At', format: formatDate },
+      { key: 'qrSentAt', label: 'QR Sent At', format: formatDate },
+      { key: 'checkedIn', label: 'Checked In', format: v => v ? 'yes' : 'no' },
+      { key: 'checkedInAt', label: 'Checked In At', format: formatDate },
+      { key: 'checkInCount', label: 'Scan Count' },
+      { key: 'plusOneOfName', label: 'Plus One Of' },
+      { key: 'plusOneAllowance', label: 'Plus One Allowance' },
+      { key: 'lastMessageSentAt', label: 'Last Message Sent', format: formatDate },
+      { key: 'lastSendError', label: 'Last Send Error' },
+      { key: 'createdTime', label: 'Submitted', format: formatDate }
+    ];
+    const stamp = new Date().toISOString().slice(0, 10);
+    exportToCsv(lastRenderedRows, columns, `chateau-invites-${stamp}.csv`);
+    showToast(`Exported ${lastRenderedRows.length} guest${lastRenderedRows.length !== 1 ? 's' : ''}`, 'success');
+  });
+}
+
+function bindTestSend() {
+  document.querySelectorAll('[data-test-type]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const type = btn.dataset.testType;
+      const email = document.getElementById('testEmail').value.trim();
+      const phone = document.getElementById('testPhone').value.trim();
+      if (!email) { showToast('Enter your email first', 'error'); return; }
+      const orig = btn.textContent;
+      btn.disabled = true;
+      btn.textContent = 'Sending…';
+      try {
+        const res = await fetch('/api/messaging/test-send', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ type, email, phone: phone || undefined })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'HTTP ' + res.status);
+        const parts = [];
+        if (data.emailSent) parts.push('email');
+        if (data.smsSent) parts.push('SMS');
+        if (data.errors?.length) parts.push(data.errors.length + ' error(s)');
+        showToast('Test ' + type + ' sent: ' + (parts.length ? parts.join(' · ') : 'nothing'), data.errors?.length ? 'error' : 'success');
+      } catch (err) {
+        showToast('Test send failed: ' + err.message, 'error');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = orig;
+      }
+    });
+  });
+}
+
+// ============== BROADCAST ACTIONS ==============
+function bindBroadcastButtons() {
+  document.getElementById('btnEventUpdate').addEventListener('click', async () => {
+    const approved = messagingGuests.filter(g => g.messagingStatus === 'Approved');
+    if (approved.length === 0) return;
+    const msg = `Send EVENT UPDATE to all ${approved.length} approved guest${approved.length !== 1 ? 's' : ''}?\n\nThis informs them of a date/details change. The address is NOT revealed in this email.\n\nProceed?`;
+    if (!confirm(msg)) return;
+
+    const btn = document.getElementById('btnEventUpdate');
+    btn.disabled = true;
+    btn.textContent = 'Sending…';
+    try {
+      const res = await fetch('/api/messaging/send-event-update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({})
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+      const parts = [];
+      if (data.notified > 0) parts.push(`${data.notified} notified`);
+      if (data.emailSent > 0) parts.push(`${data.emailSent} email${data.emailSent !== 1 ? 's' : ''}`);
+      if (data.smsSent > 0) parts.push(`${data.smsSent} SMS`);
+      if (data.failed && data.failed.length > 0) parts.push(`${data.failed.length} failed`);
+      showToast(parts.length > 0 ? parts.join(' · ') : 'Done', data.failed?.length > 0 ? 'error' : 'success');
+      await loadGuests();
+    } catch (err) {
+      showToast('Event update failed: ' + err.message, 'error');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Send event update';
+    }
+  });
+
+  document.getElementById('btn24hReminder').addEventListener('click', async () => {
+    const approved = messagingGuests.filter(g => g.messagingStatus === 'Approved');
+    if (approved.length === 0) return;
+    const msg = `Send 24H REMINDER to all ${approved.length} approved guest${approved.length !== 1 ? 's' : ''}?\n\nThis REVEALS THE ADDRESS and is meant for the day before the event.\n\nAre you sure?`;
+    if (!confirm(msg)) return;
+    // Second confirmation because this reveals the address
+    const msg2 = `Final confirmation — address will be sent now.\n\nContinue?`;
+    if (!confirm(msg2)) return;
+
+    const btn = document.getElementById('btn24hReminder');
+    btn.disabled = true;
+    btn.textContent = 'Sending…';
+    try {
+      const res = await fetch('/api/messaging/send-24h-reminder', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({})
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+      const parts = [];
+      if (data.notified > 0) parts.push(`${data.notified} notified`);
+      if (data.emailSent > 0) parts.push(`${data.emailSent} email${data.emailSent !== 1 ? 's' : ''}`);
+      if (data.smsSent > 0) parts.push(`${data.smsSent} SMS`);
+      if (data.failed && data.failed.length > 0) parts.push(`${data.failed.length} failed`);
+      showToast(parts.length > 0 ? parts.join(' · ') : 'Done', data.failed?.length > 0 ? 'error' : 'success');
+      await loadGuests();
+    } catch (err) {
+      showToast('24h reminder failed: ' + err.message, 'error');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Send 24h reminder';
+    }
+  });
+}
+
+// ============== PHONE CLEANUP MODAL ==============
+let phoneCleanupPreviews = [];
+
+function bindPhoneCleanup() {
+  const modal = document.getElementById('phoneModal');
+  const openBtn = document.getElementById('btnPhoneCleanup');
+  const closeBtn = document.getElementById('closePhoneModal');
+  const cancelBtn = document.getElementById('phCancelBtn');
+  const applyBtn = document.getElementById('phApplyBtn');
+  const selectAll = document.getElementById('phSelectAll');
+
+  openBtn.addEventListener('click', async () => {
+    modal.style.display = 'flex';
+    document.getElementById('phoneModalSummary').textContent = 'Scanning all phone numbers…';
+    document.getElementById('phoneTableBody').innerHTML = '<tr><td colspan="5" style="text-align:center;padding:40px;color:var(--ink-soft)">Loading…</td></tr>';
+
+    try {
+      const res = await fetch('/api/messaging/phone-cleanup-preview', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({})
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed');
+
+      phoneCleanupPreviews = data.previews || [];
+      renderPhonePreview(data.summary);
+    } catch (err) {
+      document.getElementById('phoneTableBody').innerHTML = `<tr><td colspan="5" style="text-align:center;padding:40px;color:#c47466">Error: ${escapeHtml(err.message)}</td></tr>`;
+    }
+  });
+
+  closeBtn.addEventListener('click', () => { modal.style.display = 'none'; });
+  cancelBtn.addEventListener('click', () => { modal.style.display = 'none'; });
+
+  modal.addEventListener('click', e => {
+    if (e.target === modal) modal.style.display = 'none';
+  });
+
+  selectAll.addEventListener('change', e => {
+    document.querySelectorAll('.ph-row-check').forEach(cb => { cb.checked = e.target.checked; });
+    updatePhoneSelectedCount();
+  });
+
+  applyBtn.addEventListener('click', async () => {
+    const checked = Array.from(document.querySelectorAll('.ph-row-check:checked'));
+    if (checked.length === 0) {
+      showToast('No rows selected', 'warning');
+      return;
+    }
+
+    const updates = checked.map(cb => {
+      const id = cb.dataset.id;
+      const preview = phoneCleanupPreviews.find(p => p.id === id);
+      return preview ? { id, cleaned: preview.cleaned } : null;
+    }).filter(Boolean);
+
+    if (!confirm(`Apply phone cleanup to ${updates.length} record${updates.length !== 1 ? 's' : ''}? This will overwrite the Phone field for each.`)) return;
+
+    applyBtn.disabled = true;
+    applyBtn.textContent = 'Applying…';
+    try {
+      const res = await fetch('/api/messaging/phone-cleanup-apply', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ updates })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed');
+
+      showToast(`Applied to ${data.applied} record${data.applied !== 1 ? 's' : ''}${data.failed?.length > 0 ? ` · ${data.failed.length} failed` : ''}`, data.failed?.length > 0 ? 'error' : 'success');
+      modal.style.display = 'none';
+      await loadGuests();
+    } catch (err) {
+      showToast('Apply failed: ' + err.message, 'error');
+    } finally {
+      applyBtn.disabled = false;
+      applyBtn.textContent = 'Apply selected';
+    }
+  });
+}
+
+function renderPhonePreview(summary) {
+  document.getElementById('phoneModalSummary').textContent = summary.total > 0
+    ? `Found ${summary.total} phone number${summary.total !== 1 ? 's' : ''} that need cleanup`
+    : 'All phone numbers are already clean. ✓';
+  document.getElementById('phStatOk').textContent = summary.ok;
+  document.getElementById('phStatGuessed').textContent = summary.guessed;
+  document.getElementById('phStatLikely').textContent = summary.likely || 0;
+  document.getElementById('phStatReview').textContent = summary.needsReview;
+
+  if (phoneCleanupPreviews.length === 0) {
+    document.getElementById('phoneTableBody').innerHTML = '<tr><td colspan="5" style="text-align:center;padding:40px;color:var(--ink-soft)">No phone numbers need cleanup. 🎉</td></tr>';
+    document.getElementById('phApplyBtn').disabled = true;
+    return;
+  }
+
+  const STATUS_COLORS = {
+    ok: '#4a7c59',
+    unchanged: '#4a7c59',
+    guessed: '#5b8db8',
+    likely: '#D4A744',
+    needs_review: '#c47466',
+    invalid: '#c47466'
+  };
+  const STATUS_LABELS = {
+    ok: 'Valid',
+    unchanged: 'Valid',
+    guessed: 'Detected',
+    likely: 'Likely',
+    needs_review: 'Review',
+    invalid: 'Invalid'
+  };
+
+  const tbody = document.getElementById('phoneTableBody');
+  tbody.innerHTML = phoneCleanupPreviews.map((p, idx) => {
+    const statusColor = STATUS_COLORS[p.status] || '#888';
+    const statusLabel = STATUS_LABELS[p.status] || p.status;
+    // Default checked: ok + guessed + likely (skip review/invalid)
+    const checked = p.status === 'ok' || p.status === 'unchanged' || p.status === 'guessed' || p.status === 'likely' || p.status === 'detected';
+    const countryBadge = p.country
+      ? `<span style="display:inline-block;padding:2px 6px;background:#f0eee8;color:#4a4337;font-size:10px;border-radius:3px;margin-right:6px;font-family:'JetBrains Mono',Menlo,monospace;font-weight:500">${escapeHtml(p.country)}</span>`
+      : '';
+    return `
+      <tr>
+        <td style="padding:10px 12px"><input type="checkbox" class="ph-row-check" data-idx="${idx}" data-id="${p.id}" ${checked ? 'checked' : ''}></td>
+        <td style="padding:10px 8px">
+          <div style="font-weight:500;color:var(--ink);font-size:13px">${escapeHtml(p.name)}</div>
+          <div style="font-size:11px;color:var(--ink-faint)">${escapeHtml(p.email || '—')}</div>
+        </td>
+        <td style="padding:10px 8px;font-family:'JetBrains Mono',Menlo,monospace;font-size:12px;color:var(--ink-soft)">${escapeHtml(p.original)}</td>
+        <td style="padding:10px 8px">
+          ${countryBadge}
+          <input
+            type="text"
+            class="ph-edit-input"
+            data-idx="${idx}"
+            value="${escapeAttr(p.cleaned)}"
+            style="font-family:'JetBrains Mono',Menlo,monospace;font-size:12px;padding:5px 8px;border:1px solid var(--hairline);border-radius:3px;width:160px;color:var(--ink);font-weight:500"
+            placeholder="+49…"
+          >
+        </td>
+        <td style="padding:10px 8px">
+          <span style="display:inline-block;padding:2px 8px;background:${statusColor}22;color:${statusColor};font-size:11px;border-radius:3px;margin-right:6px;font-weight:500">${statusLabel}</span>
+          <span style="font-size:11px;color:var(--ink-soft)">${escapeHtml(p.action)}</span>
+        </td>
+      </tr>
+    `;
+  }).join('');
+
+  document.getElementById('phApplyBtn').disabled = false;
+
+  // Bind row interactions
+  document.querySelectorAll('.ph-row-check').forEach(cb => {
+    cb.addEventListener('change', updatePhoneSelectedCount);
+  });
+  document.querySelectorAll('.ph-edit-input').forEach(inp => {
+    inp.addEventListener('input', e => {
+      const idx = parseInt(e.target.dataset.idx);
+      if (!isNaN(idx) && phoneCleanupPreviews[idx]) {
+        phoneCleanupPreviews[idx].cleaned = e.target.value.trim();
+      }
+    });
+  });
+  updatePhoneSelectedCount();
+}
+
+function updatePhoneSelectedCount() {
+  const count = document.querySelectorAll('.ph-row-check:checked').length;
+  document.getElementById('phSelectedCount').textContent = `${count} selected`;
+}
+
+// ============== INTERNATIONAL SMS RESEND ==============
+let intlSmsCandidates = [];
+
+function bindIntlSmsResend() {
+  const modal = document.getElementById('intlSmsModal');
+  const openBtn = document.getElementById('btnIntlSmsResend');
+  const closeBtn = document.getElementById('closeIntlSmsModal');
+  const cancelBtn = document.getElementById('intlSmsCancelBtn');
+  const sendBtn = document.getElementById('intlSmsSendBtn');
+  const selectAll = document.getElementById('intlSmsSelectAll');
+
+  if (!openBtn) return;
+
+  openBtn.addEventListener('click', async () => {
+    modal.style.display = 'flex';
+    document.getElementById('intlSmsModalSummary').textContent = 'Loading candidates…';
+    document.getElementById('intlSmsTableBody').innerHTML = '<tr><td colspan="4" style="text-align:center;padding:40px;color:var(--ink-soft)">Loading…</td></tr>';
+
+    try {
+      const res = await fetch('/api/messaging/sms-resend-international', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ preview: true })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed');
+
+      intlSmsCandidates = data.candidates || [];
+      renderIntlSmsPreview(data.count);
+    } catch (err) {
+      document.getElementById('intlSmsTableBody').innerHTML = '<tr><td colspan="4" style="text-align:center;padding:40px;color:#c47466">Error: ' + escapeHtml(err.message) + '</td></tr>';
+    }
+  });
+
+  closeBtn.addEventListener('click', () => { modal.style.display = 'none'; });
+  cancelBtn.addEventListener('click', () => { modal.style.display = 'none'; });
+  modal.addEventListener('click', e => { if (e.target === modal) modal.style.display = 'none'; });
+
+  selectAll.addEventListener('change', e => {
+    document.querySelectorAll('.intl-row-check').forEach(cb => { cb.checked = e.target.checked; });
+    updateIntlSmsSelectedCount();
+  });
+
+  sendBtn.addEventListener('click', async () => {
+    const checked = Array.from(document.querySelectorAll('.intl-row-check:checked'));
+    if (checked.length === 0) {
+      showToast('No recipients selected', 'warning');
+      return;
+    }
+    const ids = checked.map(cb => cb.dataset.id);
+    if (!confirm('Send confirmation SMS to ' + ids.length + ' international guest' + (ids.length !== 1 ? 's' : '') + '? Email is NOT resent.')) return;
+
+    sendBtn.disabled = true;
+    sendBtn.textContent = 'Sending…';
+    try {
+      const res = await fetch('/api/messaging/sms-resend-international', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ send: true, ids })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed');
+
+      const failedNote = data.failed > 0 ? ' · ' + data.failed + ' failed' : '';
+      showToast('Sent SMS to ' + data.sent + ' guest' + (data.sent !== 1 ? 's' : '') + failedNote, data.failed > 0 ? 'error' : 'success');
+      modal.style.display = 'none';
+      await loadGuests();
+    } catch (err) {
+      showToast('Send failed: ' + err.message, 'error');
+    } finally {
+      sendBtn.disabled = false;
+      sendBtn.textContent = 'Send SMS to selected';
+    }
+  });
+}
+
+let intlCountryFilter = 'all'; // 'all' or specific country code like '39'
+
+const COUNTRY_NAMES = {
+  '1': 'US/CA', '33': 'France', '34': 'Spain', '39': 'Italy', '41': 'Switzerland',
+  '43': 'Austria', '44': 'UK', '45': 'Denmark', '46': 'Sweden', '47': 'Norway',
+  '31': 'Netherlands', '32': 'Belgium', '351': 'Portugal', '353': 'Ireland',
+  '30': 'Greece', '48': 'Poland', '420': 'Czech', '90': 'Turkey',
+  '971': 'UAE', '966': 'Saudi Arabia', '972': 'Israel', '20': 'Egypt',
+  '7': 'Russia', '61': 'Australia', '64': 'NZ', '81': 'Japan', '86': 'China',
+  '52': 'Mexico', '55': 'Brazil', '54': 'Argentina', '27': 'South Africa'
+};
+
+function countryLabel(cc) {
+  return COUNTRY_NAMES[cc] || ('+' + cc);
+}
+
+function renderIntlSmsPreview(count) {
+  document.getElementById('intlSmsModalSummary').textContent = count > 0
+    ? 'Found ' + count + ' international Approved guest' + (count !== 1 ? 's' : '')
+    : 'No international guests to resend SMS to.';
+
+  if (intlSmsCandidates.length === 0) {
+    document.getElementById('intlCountryChips').innerHTML = '';
+    document.getElementById('intlSmsTableBody').innerHTML = '<tr><td colspan="4" style="text-align:center;padding:40px;color:var(--ink-soft)">No candidates. 🎉</td></tr>';
+    document.getElementById('intlSmsSendBtn').disabled = true;
+    return;
+  }
+
+  // Build country chips: group candidates by country code, show count
+  const countryCount = {};
+  intlSmsCandidates.forEach(c => {
+    const cc = c.countryCode || '?';
+    countryCount[cc] = (countryCount[cc] || 0) + 1;
+  });
+  const sortedCountries = Object.keys(countryCount).sort((a, b) => countryCount[b] - countryCount[a]);
+
+  const chipsHtml = ['<button class="intl-country-chip" data-cc="all" style="padding:4px 10px;border-radius:14px;border:1px solid var(--ink);background:' + (intlCountryFilter === 'all' ? 'var(--ink)' : '#fff') + ';color:' + (intlCountryFilter === 'all' ? '#fff' : 'var(--ink)') + ';font-size:11px;cursor:pointer;font-family:Inter,sans-serif">All <span style="opacity:0.7">(' + intlSmsCandidates.length + ')</span></button>']
+    .concat(sortedCountries.map(cc => {
+      const active = intlCountryFilter === cc;
+      return '<button class="intl-country-chip" data-cc="' + cc + '" style="padding:4px 10px;border-radius:14px;border:1px solid var(--ink);background:' + (active ? 'var(--ink)' : '#fff') + ';color:' + (active ? '#fff' : 'var(--ink)') + ';font-size:11px;cursor:pointer;font-family:Inter,sans-serif">' + escapeHtml(countryLabel(cc)) + ' <span style="opacity:0.7">(' + countryCount[cc] + ')</span></button>';
+    }));
+  document.getElementById('intlCountryChips').innerHTML = chipsHtml.join('');
+
+  // Wire chip clicks
+  document.querySelectorAll('.intl-country-chip').forEach(btn => {
+    btn.addEventListener('click', () => {
+      intlCountryFilter = btn.dataset.cc;
+      renderIntlSmsPreview(intlSmsCandidates.length);
+    });
+  });
+
+  // Filter candidates by country
+  const visible = intlCountryFilter === 'all'
+    ? intlSmsCandidates
+    : intlSmsCandidates.filter(c => c.countryCode === intlCountryFilter);
+
+  const tbody = document.getElementById('intlSmsTableBody');
+  tbody.innerHTML = visible.map(c => {
+    return '<tr>' +
+      '<td style="padding:10px 12px"><input type="checkbox" class="intl-row-check" data-id="' + c.id + '" checked></td>' +
+      '<td style="padding:10px 8px"><div style="font-weight:500;color:var(--ink);font-size:13px">' + escapeHtml(c.name) + '</div>' +
+      '<div style="font-size:11px;color:var(--ink-faint)">' + escapeHtml(c.email || '—') + '</div></td>' +
+      '<td style="padding:10px 8px;font-family:JetBrains Mono,Menlo,monospace;font-size:12px;color:var(--ink)">' + escapeHtml(c.phone) + '</td>' +
+      '<td style="padding:10px 8px;font-size:12px;color:var(--ink-soft)"><span style="display:inline-block;padding:2px 6px;background:#f0eee8;font-size:11px;border-radius:3px">' + escapeHtml(countryLabel(c.countryCode)) + '</span></td>' +
+      '</tr>';
+  }).join('');
+
+  document.getElementById('intlSmsSendBtn').disabled = visible.length === 0;
+  document.querySelectorAll('.intl-row-check').forEach(cb => {
+    cb.addEventListener('change', updateIntlSmsSelectedCount);
+  });
+  updateIntlSmsSelectedCount();
+}
+
+function updateIntlSmsSelectedCount() {
+  const count = document.querySelectorAll('.intl-row-check:checked').length;
+  document.getElementById('intlSmsSelectedCount').textContent = count + ' selected';
+}
+
+// ============== LOAD ==============
+async function loadGuests() {
+  try {
+    const res = await fetch('/api/guests');
+    if (res.status === 401) { window.location.href = '/login'; return; }
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    allGuests = data.guests || [];
+    messagingGuests = allGuests; // includes Pending (no messagingStatus) so they're actionable here too
+    renderCounts();
+    render();
+  } catch (err) {
+    showToast('Failed to load: ' + err.message, 'error');
+  }
+}
+
+// ============== RENDER ==============
+function renderCounts() {
+  const counts = { all: messagingGuests.length, pending: 0, Listed: 0, 'Semi Approved': 0, Waitlist: 0, Approved: 0, Declined: 0 };
+  let issuesCount = 0;
+  let checkedInCount = 0;
+  let notCheckedInCount = 0;
+  for (const g of messagingGuests) {
+    if (!g.messagingStatus) counts.pending++;
+    else if (counts[g.messagingStatus] !== undefined) counts[g.messagingStatus]++;
+    if (g.lastSendErrorLevel === 'error' || g.lastSendErrorLevel === 'warning') issuesCount++;
+    if (g.checkedIn) checkedInCount++;
+    else if (g.messagingStatus === 'Approved') notCheckedInCount++;
+  }
+  document.getElementById('cntAll').textContent = counts.all;
+  document.getElementById('cntPending').textContent = counts.pending;
+  document.getElementById('cntListed').textContent = counts.Listed;
+  document.getElementById('cntSemi').textContent = counts['Semi Approved'];
+  document.getElementById('cntWait').textContent = counts.Waitlist;
+  document.getElementById('cntApproved').textContent = counts.Approved;
+  document.getElementById('cntDeclined').textContent = counts.Declined;
+  document.getElementById('cntCheckedIn').textContent = checkedInCount;
+  document.getElementById('cntNotCheckedIn').textContent = notCheckedInCount;
+  document.getElementById('cntIssues').textContent = issuesCount;
+
+  document.getElementById('headerMeta').textContent =
+    `${counts.all} guest${counts.all !== 1 ? 's' : ''} total` +
+    (counts.pending > 0 ? ` · ${counts.pending} pending` : '') +
+    (counts.Approved > 0 ? ` · ${counts.Approved} approved` : '') +
+    (checkedInCount > 0 ? ` · ${checkedInCount} checked in` : '') +
+    (issuesCount > 0 ? ` · ⚠ ${issuesCount} with issues` : '');
+
+  // Broadcast section
+  document.getElementById('broadcastCount').textContent = counts.Approved;
+  renderBroadcastMeta();
+}
+
+function renderBroadcastMeta() {
+  const approved = messagingGuests.filter(g => g.messagingStatus === 'Approved');
+  const eventUpdated = approved.filter(g => g.lastEventUpdateSentAt).length;
+  const reminderSent = approved.filter(g => g.reminder24hSentAt).length;
+  const evEl = document.getElementById('eventUpdateMeta');
+  const rmEl = document.getElementById('reminder24hMeta');
+  if (evEl) {
+    evEl.textContent = approved.length > 0
+      ? `${eventUpdated} of ${approved.length} have been notified of a change`
+      : 'No approved guests yet';
+  }
+  if (rmEl) {
+    rmEl.textContent = approved.length > 0
+      ? `${reminderSent} of ${approved.length} have received the 24h reminder`
+      : 'No approved guests yet';
+  }
+
+  // Disable buttons if no approved guests
+  const evBtn = document.getElementById('btnEventUpdate');
+  const rmBtn = document.getElementById('btn24hReminder');
+  if (evBtn) evBtn.disabled = approved.length === 0;
+  if (rmBtn) rmBtn.disabled = approved.length === 0;
+}
+
+function render() {
+  const tbody = document.getElementById('tbody');
+  const card = document.getElementById('tableCard');
+  const empty = document.getElementById('emptyState');
+
+  let rows;
+  if (currentFilter === 'all') {
+    rows = messagingGuests;
+  } else if (currentFilter === 'pending') {
+    // Guests not yet sent any invite-status message
+    rows = messagingGuests.filter(g => !g.messagingStatus);
+  } else if (currentFilter === 'issues') {
+    // Show anyone with a tracked error or warning on their last send
+    rows = messagingGuests.filter(g => g.lastSendErrorLevel === 'error' || g.lastSendErrorLevel === 'warning');
+  } else if (currentFilter === 'checkedin') {
+    rows = messagingGuests.filter(g => g.checkedIn);
+  } else if (currentFilter === 'notcheckedin') {
+    // Approved-and-not-checked-in is the meaningful subset (the rest haven't been admitted)
+    rows = messagingGuests.filter(g => g.messagingStatus === 'Approved' && !g.checkedIn);
+  } else {
+    rows = messagingGuests.filter(g => g.messagingStatus === currentFilter);
+  }
+
+  // Search filter (name, email, instagram, company, referredBy)
+  const query = (searchQuery || '').trim().toLowerCase();
+  if (query) {
+    rows = rows.filter(g => {
+      const haystack = [
+        g.name, g.email, g.instagram, g.company, g.referredBy,
+        g.notes
+      ].filter(Boolean).join(' ').toLowerCase();
+      return haystack.includes(query);
+    });
+  }
+
+  // Privacy filter
+  if (privacyFilter === 'public') rows = rows.filter(g => g.igIsPrivate === false);
+  else if (privacyFilter === 'private') rows = rows.filter(g => g.igIsPrivate === true);
+  else if (privacyFilter === 'unknown') rows = rows.filter(g => g.igIsPrivate === null || g.igIsPrivate === undefined);
+
+  // Followers filter (preset)
+  if (followersFilter === 'over5k') rows = rows.filter(g => typeof g.igFollowers === 'number' && g.igFollowers >= 5000);
+  else if (followersFilter === 'under5k') rows = rows.filter(g => typeof g.igFollowers === 'number' && g.igFollowers < 5000);
+  else if (followersFilter === 'nodata') rows = rows.filter(g => g.igFollowers === null || g.igFollowers === undefined);
+
+  // Min followers numeric input
+  if (minFollowers > 0) {
+    rows = rows.filter(g => g.igFollowers !== null && g.igFollowers !== undefined && g.igFollowers >= minFollowers);
+  }
+
+  // Importance filter
+  if (importanceFilter === '__none__') rows = rows.filter(g => !g.importance);
+  else if (importanceFilter) rows = rows.filter(g => g.importance === importanceFilter);
+
+  // Sort: respect user-clicked column or sortPreset, otherwise default = Approved first then name
+  rows = [...rows].sort((a, b) => {
+    if (sortKey === 'default') {
+      const order = { 'Approved': 0, 'Waitlist': 1, 'Semi Approved': 2, 'Listed': 3, 'Declined': 4 };
+      const oa = order[a.messagingStatus] ?? 99;
+      const ob = order[b.messagingStatus] ?? 99;
+      if (oa !== ob) return oa - ob;
+      return (a.name || '').localeCompare(b.name || '');
+    }
+    let av, bv;
+    if (sortKey === 'privacy') {
+      // Map: private=2, public=1, unknown=0
+      av = a.igIsPrivate === true ? 2 : a.igIsPrivate === false ? 1 : 0;
+      bv = b.igIsPrivate === true ? 2 : b.igIsPrivate === false ? 1 : 0;
+    } else {
+      av = a[sortKey]; bv = b[sortKey];
+      if (av === null || av === undefined || av === '') av = sortDir === 'asc' ? Infinity : -Infinity;
+      if (bv === null || bv === undefined || bv === '') bv = sortDir === 'asc' ? Infinity : -Infinity;
+      if (typeof av === 'string') av = av.toLowerCase();
+      if (typeof bv === 'string') bv = bv.toLowerCase();
+    }
+    if (av < bv) return sortDir === 'asc' ? -1 : 1;
+    if (av > bv) return sortDir === 'asc' ? 1 : -1;
+    return 0;
+  });
+
+  updateInvitedSortIndicators();
+
+  if (rows.length === 0) {
+    card.style.display = 'none';
+    empty.style.display = 'block';
+    if (messagingGuests.length === 0) {
+      empty.querySelector('.empty-title').textContent = 'No guests in invites yet';
+      empty.querySelector('.empty-desc').innerHTML =
+        'Go to the <a href="/guests" style="color: var(--gold-deep)">Guests page</a>, ' +
+        'select people you want to communicate with, and click "List for Invites". ' +
+        'They\'ll appear here for SMS &amp; email.';
+    } else {
+      empty.querySelector('.empty-title').textContent = 'No guests with this status';
+      empty.querySelector('.empty-desc').textContent = 'Switch filter or set status from the table.';
+    }
+    return;
+  }
+
+  card.style.display = '';
+  empty.style.display = 'none';
+  tbody.innerHTML = rows.map(rowHtml).join('');
+
+  // Cache for CSV export + update count display
+  lastRenderedRows = rows;
+  const exportCount = document.getElementById('exportCount');
+  if (exportCount) exportCount.textContent = rows.length > 0 ? `(${rows.length})` : '';
+
+  // Bind interactions
+  tbody.querySelectorAll('input.row-check').forEach(cb => {
+    cb.addEventListener('change', e => {
+      e.stopPropagation();
+      if (e.target.checked) selectedIds.add(e.target.dataset.id);
+      else selectedIds.delete(e.target.dataset.id);
+      // Toggle visual selected class on the row
+      const tr = e.target.closest('tr');
+      if (tr) tr.classList.toggle('row-selected', e.target.checked);
+      updateBulkBar();
+    });
+  });
+
+  // Mobile: tap on row body (anywhere except buttons/links/inputs) toggles selection
+  tbody.querySelectorAll('tr[data-id]').forEach(tr => {
+    tr.addEventListener('click', e => {
+      // Skip if click landed on an interactive element
+      if (e.target.closest('button, a, input, [data-action]')) return;
+      // Only do this when the row is in mobile card layout (table thead is hidden)
+      // Use viewport check instead of CSS for reliability
+      if (window.innerWidth > 700) return;
+      const cb = tr.querySelector('input.row-check');
+      if (!cb) return;
+      cb.checked = !cb.checked;
+      cb.dispatchEvent(new Event('change', { bubbles: true }));
+    });
+  });
+  tbody.querySelectorAll('[data-action="status"]').forEach(el => {
+    el.addEventListener('click', e => {
+      e.stopPropagation();
+      openStatusMenu(el, el.dataset.id);
+    });
+  });
+  tbody.querySelectorAll('[data-action="send"]').forEach(btn => {
+    btn.addEventListener('click', () => sendSingle(btn.dataset.id, btn));
+  });
+  tbody.querySelectorAll('[data-action="confirm"]').forEach(btn => {
+    btn.addEventListener('click', () => confirmSingle(btn.dataset.id, btn));
+  });
+  tbody.querySelectorAll('[data-action="waitlist"]').forEach(btn => {
+    btn.addEventListener('click', () => waitlistSingle(btn.dataset.id, btn));
+  });
+  tbody.querySelectorAll('[data-action="resend"]').forEach(btn => {
+    btn.addEventListener('click', () => sendSingle(btn.dataset.id, btn));  // resend = same template, no status change
+  });
+  tbody.querySelectorAll('[data-action="sendqr"]').forEach(btn => {
+    btn.addEventListener('click', () => sendQrSingle(btn.dataset.id, btn));
+  });
+  tbody.querySelectorAll('[data-action="reject"]').forEach(btn => {
+    btn.addEventListener('click', () => rejectSingle(btn.dataset.id, btn));
+  });
+
+  document.getElementById('selectAll').addEventListener('change', e => {
+    if (e.target.checked) {
+      rows.forEach(g => selectedIds.add(g.id));
+    } else {
+      selectedIds.clear();
+    }
+    document.querySelectorAll('input.row-check').forEach(cb => {
+      cb.checked = selectedIds.has(cb.dataset.id);
+    });
+    updateBulkBar();
+  });
+}
+
+function rowHtml(g) {
+  const initial = (g.name || '?').trim().charAt(0).toUpperCase();
+  const avatar = g.igAvatarUrl
+    ? `<span class="avatar" style="background-image:url('/api/avatar?url=${encodeURIComponent(g.igAvatarUrl)}')"></span>`
+    : `<span class="avatar avatar-placeholder">${escapeHtml(initial)}</span>`;
+
+  const followers = g.igFollowers !== null
+    ? `<span class="followers ${g.igFollowers >= 10000 ? 'big' : ''}">${formatNumber(g.igFollowers)}</span>`
+    : `<span class="followers empty">—</span>`;
+
+  const msgStatus = g.messagingStatus || '';
+  const msgPillClass = MSG_PILL[msgStatus] || 'pill-default';
+  const msgPillText = msgStatus || 'Pending';
+  const msgPill = `<span class="pill ${msgPillClass} pill-clickable" data-action="status" data-id="${g.id}" title="Click to change">${escapeHtml(msgPillText)}</span>`;
+
+  const guestStatus = g.status
+    ? `<span style="color:var(--ink-soft); font-size:12px">${escapeHtml(g.status)}</span>`
+    : `<span style="color:var(--ink-faint)">—</span>`;
+
+  const igLockIcon = g.igIsPrivate === true
+    ? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-label="Private profile" width="12" height="12" style="flex-shrink:0;color:#c47466"><title>Private profile</title><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>`
+    : '';
+  const igLink = g.instagram
+    ? `<div class="ig-cell">${igLockIcon}<span class="ig-handle" title="${g.igIsPrivate === true ? 'Private — ' : ''}@${escapeAttr(g.instagram)}"><a href="https://instagram.com/${encodeURIComponent(g.instagram)}" target="_blank" rel="noopener">@${escapeHtml(g.instagram)}</a></span></div>`
+    : `<span style="color:var(--ink-faint)">—</span>`;
+
+  const referralCell = g.referredBy
+    ? `<span style="font-size:13px;color:var(--ink)">${escapeHtml(g.referredBy)}</span>`
+    : `<span style="color:var(--ink-faint)">—</span>`;
+
+  // Per-row actions:
+  //   Listed / Semi Approved → TWO buttons: Waitlist (yellow) + Confirm (gold)
+  //                            Both set Messaging Status AND send appropriate template
+  //   Waitlist → Resend (waitlist template again, no status change)
+  //   Approved → Resend (confirm template again, no status change)
+  //   Declined → disabled
+  let actionBtn;
+  const isAListMsg = isAListGuest(g);
+  if (isAListMsg) {
+    // A-List = auto-confirmed, no outreach. Green check instead of action buttons.
+    actionBtn = `<div class="action-btn-group" style="align-items:center">
+      <span class="alist-check" title="A-List · automatically confirmed, no email/SMS sent" style="display:inline-flex;align-items:center;gap:5px;padding:5px 10px;background:rgba(58,138,74,0.1);color:#3a8a4a;border:1px solid rgba(58,138,74,0.3);border-radius:6px;font-size:11px;font-weight:500;letter-spacing:0.04em">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:11px;height:11px"><polyline points="20 6 9 17 4 12"/></svg>
+        On list
+      </span>
+      <button class="send-btn reject-btn" data-action="reject" data-id="${g.id}" title="Remove from list" style="background:transparent;color:#c4544a;border:1px solid rgba(196,84,74,0.4);padding:5px 8px">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>`;
+  } else if (msgStatus === 'Listed' || msgStatus === 'Semi Approved') {
+    actionBtn = `<div class="action-btn-group">
+      <button class="send-btn waitlist-btn" data-action="waitlist" data-id="${g.id}" title="Set to Waitlist + send waitlist email and SMS">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        Waitlist
+      </button>
+      <button class="send-btn confirm-btn" data-action="confirm" data-id="${g.id}" title="Set to Approved + send confirmation email and SMS">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+        Confirm
+      </button>
+    </div>`;
+  } else if (msgStatus === 'Approved') {
+    const qrBtnLabel = g.qrSentAt ? 'Resend QR' : 'Send QR';
+    const qrBtnTitle = g.qrSentAt
+      ? 'Re-send event details + QR code email (already sent ' + (g.qrSentAt ? new Date(g.qrSentAt).toLocaleDateString() : '') + ')'
+      : 'Send event details + QR code email to this guest';
+    actionBtn = `<div class="action-btn-group">
+      <button class="send-btn" data-action="resend" data-id="${g.id}" title="Re-send confirmation email and SMS">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 4v5h-5"/></svg>
+        Resend
+      </button>
+      <button class="send-btn" data-action="sendqr" data-id="${g.id}" title="${escapeAttr(qrBtnTitle)}" style="background:rgba(184,150,90,0.12);color:#8a6c2e;border:1px solid rgba(184,150,90,0.35)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3h-3zM20 14h1v1h-1zM14 20h1v1h-1zM20 20h1v1h-1z"/></svg>
+        ${qrBtnLabel}
+      </button>
+      <button class="send-btn reject-btn" data-action="reject" data-id="${g.id}" title="Reject this guest — sends an apology email/SMS and marks as Declined" style="background:transparent;color:#c4544a;border:1px solid rgba(196,84,74,0.4);padding:5px 8px">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>`;
+  } else if (msgStatus === 'Waitlist') {
+    actionBtn = `<div class="action-btn-group">
+      <button class="send-btn" data-action="resend" data-id="${g.id}" title="Re-send waitlist email and SMS">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 4v5h-5"/></svg>
+        Resend
+      </button>
+      <button class="send-btn reject-btn" data-action="reject" data-id="${g.id}" title="Reject this guest — sends an apology email/SMS and marks as Declined" style="background:transparent;color:#c4544a;border:1px solid rgba(196,84,74,0.4);padding:5px 8px">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>`;
+  } else if (!msgStatus) {
+    // Pending — never sent any invite-status message. Offer Waitlist + Confirm so
+    // staff can promote them straight from this view (or from the bulk bar).
+    actionBtn = `<div class="action-btn-group">
+      <button class="send-btn waitlist-btn" data-action="waitlist" data-id="${g.id}" title="Set to Waitlist + send waitlist email and SMS">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        Waitlist
+      </button>
+      <button class="send-btn confirm-btn" data-action="confirm" data-id="${g.id}" title="Set to Approved + send confirmation email and SMS">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+        Confirm
+      </button>
+    </div>`;
+  } else {
+    // Declined or other terminal state
+    actionBtn = `<button class="send-btn" disabled title="Already declined">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+      —
+    </button>`;
+  }
+
+  // Send-error indicator (dot before name + clear "what failed" detail)
+  let errorDot = '';
+  let errorDetail = '';
+  let highlightEmail = false;
+  let highlightPhone = false;
+  if (g.lastSendErrorLevel === 'error') {
+    const msg = g.lastSendError || 'Last send failed';
+    // Dot before name only on issues tab to avoid clutter elsewhere
+    if (currentFilter === 'issues') {
+      errorDot = `<span class="send-status-dot error" title="${escapeAttr(msg)}">!</span>`;
+    }
+    if (currentFilter === 'issues') {
+      errorDetail = `<span class="contact-line" style="color:#c47466"><strong>✗ Email failed</strong> · ${escapeHtml(msg.slice(0, 90))}${msg.length > 90 ? '…' : ''}</span>`;
+      highlightEmail = true;
+    }
+  } else if (g.lastSendErrorLevel === 'warning') {
+    const msg = g.lastSendError || 'SMS warning';
+    if (currentFilter === 'issues') {
+      errorDot = `<span class="send-status-dot warning" title="${escapeAttr(msg)}">!</span>`;
+    }
+    if (currentFilter === 'issues') {
+      errorDetail = `<span class="contact-line" style="color:#a8842c"><strong>✗ SMS failed</strong> (email sent) · ${escapeHtml(msg.slice(0, 90))}${msg.length > 90 ? '…' : ''}</span>`;
+      highlightPhone = true;
+    }
+  }
+  const emailStyled = highlightEmail
+    ? `<span class="contact-line" style="color:#c47466;font-weight:500">✗ ${escapeHtml(g.email)}</span>`
+    : (g.email ? `<span class="contact-line">${escapeHtml(g.email)}</span>` : '');
+  // Show subtle 📵 icon for approved non-DE guests (auto-SMS only goes to DE).
+  // Only when there is no active error (errors take priority and render in red/yellow).
+  const isNonDeApproved = g.messagingStatus === 'Approved'
+    && g.phone && g.phone.startsWith('+') && !g.phone.startsWith('+49')
+    && !g.lastSendErrorLevel;
+  const noSmsIcon = isNonDeApproved
+    ? '<span class="no-sms-icon" title="No automatic SMS — phone is outside Germany. Email was sent." style="display:inline-flex;align-items:center;gap:4px;color:var(--ink-faint);font-size:11px;margin-left:6px;opacity:0.7">📵</span>'
+    : '';
+  const phoneStyled = highlightPhone
+    ? `<span class="contact-line" style="color:#a8842c;font-weight:500">✗ ${escapeHtml(g.phone)}</span>`
+    : (g.phone ? `<span class="contact-line">${escapeHtml(g.phone)}${noSmsIcon}</span>` : '');
+
+  // Mobile-only condensed meta block: IG, Followers, Referred By, Status — visible only < 700px
+  const mobileMetaParts = [];
+  if (g.instagram) mobileMetaParts.push('IG: <strong>@' + escapeHtml(g.instagram) + '</strong>');
+  if (g.igFollowers !== null && g.igFollowers !== undefined) mobileMetaParts.push('Followers: <strong>' + formatNumber(g.igFollowers) + '</strong>');
+  if (g.referredBy) mobileMetaParts.push('Ref: <strong>' + escapeHtml(g.referredBy) + '</strong>');
+  if (g.tags && g.tags.length) mobileMetaParts.push('Tags: <strong>' + g.tags.map(t => escapeHtml(t)).join(', ') + '</strong>');
+  const mobileMeta = mobileMetaParts.length
+    ? '<div class="mobile-row-meta">' + mobileMetaParts.join(' &nbsp;·&nbsp; ') + '</div>'
+    : '';
+
+  const isSelected = selectedIds.has(g.id);
+  return `
+    <tr data-id="${g.id}" class="${isSelected ? 'row-selected' : ''}">
+      <td class="col-check">
+        <input type="checkbox" class="row-check" data-id="${g.id}" ${isSelected ? 'checked' : ''}>
+      </td>
+      <td class="col-name">
+        <div class="name-block">
+          ${avatar}
+          <div class="name-text">
+            <div style="display:flex;align-items:center;flex-wrap:wrap;gap:6px">
+              ${errorDot}
+              ${isAListGuest(g) ? '<span class="alist-star" title="A-List guest" style="display:inline-block;margin-right:4px;color:#b8965a;font-size:14px;line-height:1">★</span>' : ''}<span style="font-weight:500;color:var(--ink)">${escapeHtml(g.name) || '—'}</span>${g.importance ? '<span title="Importance: ' + escapeAttr(g.importance) + '" style="' + importancePillStyle(g.importance) + ';display:inline-flex;align-items:center;padding:1px 7px;border-radius:10px;font-size:10px;font-weight:700;letter-spacing:0.7px;text-transform:uppercase;margin-left:5px">' + escapeHtml(g.importance) + '</span>' : ''}${renderFitIndicator(g)}${renderAllowanceChip(g)}
+              ${g.qrSentAt ? '<span title="QR + event details sent" style="display:inline-flex;align-items:center;padding:1px 6px;background:rgba(31,122,60,0.12);color:#1f7a3c;border-radius:10px;font-size:10px;font-weight:600;letter-spacing:0.3px">QR ✓</span>' : ''}
+              ${g.checkedIn ? '<span title="Checked in (' + g.checkInCount + ' scan' + (g.checkInCount !== 1 ? 's' : '') + ')" style="display:inline-flex;align-items:center;padding:1px 6px;background:#1f7a3c;color:#fff;border-radius:10px;font-size:10px;font-weight:600;letter-spacing:0.3px">IN</span>' : ''}
+              ${g.plusOneOfName ? '<span class="plus-one-chip" title="Plus-one of ' + escapeAttr(g.plusOneOfName) + '" style="display:inline-flex;align-items:center;gap:3px;padding:1px 6px;background:rgba(184,150,90,0.12);color:#8a6c2e;border-radius:10px;font-size:10px;font-weight:500;letter-spacing:0.3px;white-space:nowrap">+1 · ' + escapeHtml(g.plusOneOfName) + '</span>' : ''}
+            </div>
+            ${emailStyled}
+            ${phoneStyled}
+            ${errorDetail}
+            ${mobileMeta}
+          </div>
+        </div>
+      </td>
+      <td class="col-ig">${igLink}</td>
+      <td class="col-followers" style="text-align:right">${followers}</td>
+      <td class="col-msgstatus">${msgPill}</td>
+      <td class="col-laststatus">${guestStatus}</td>
+      <td class="col-tags">${referralCell}</td>
+      <td class="col-submitted"><span class="muted">${g.createdTime ? formatDate(g.createdTime) : ''}</span></td>
+      <td class="col-send">${actionBtn}</td>
+    </tr>
+  `;
+}
+
+// ============== FILTER PILLS ==============
+function bindFilters() {
+  document.getElementById('filterBar').addEventListener('click', e => {
+    const btn = e.target.closest('.msg-pill');
+    if (!btn) return;
+    document.querySelectorAll('.msg-pill').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    currentFilter = btn.dataset.filter;
+    selectedIds.clear();
+    render();
+    updateBulkBar();
+  });
+
+  // Search input (debounced)
+  let searchDebounce;
+  document.getElementById('searchInput').addEventListener('input', e => {
+    clearTimeout(searchDebounce);
+    searchDebounce = setTimeout(() => {
+      searchQuery = e.target.value;
+      render();
+    }, 120);
+  });
+
+  // Privacy filter
+  document.getElementById('privacyFilter').addEventListener('change', e => {
+    privacyFilter = e.target.value;
+    render();
+  });
+
+  // Followers preset filter
+  document.getElementById('followersFilter').addEventListener('change', e => {
+    followersFilter = e.target.value;
+    render();
+  });
+
+  // Min followers numeric input
+  document.getElementById('minFollowers').addEventListener('input', e => {
+    minFollowers = parseInt(e.target.value) || 0;
+    render();
+  });
+
+  // Importance filter
+  document.getElementById('importanceFilter').addEventListener('change', e => {
+    importanceFilter = e.target.value;
+    render();
+  });
+
+  // Select-N quick action — selects the first N visible (filtered+sorted) guests
+  document.querySelectorAll('[data-msg-select-n]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const n = parseInt(btn.dataset.msgSelectN) || 0;
+      if (n <= 0) return;
+      const visible = lastRenderedRows || [];
+      const firstN = visible.slice(0, n).map(g => g.id);
+      const alreadyAll = firstN.length === n && firstN.every(id => selectedIds.has(id));
+      if (alreadyAll) {
+        const remaining = visible.slice(n).filter(g => !selectedIds.has(g.id));
+        remaining.slice(0, n).forEach(g => selectedIds.add(g.id));
+      } else {
+        firstN.forEach(id => selectedIds.add(id));
+      }
+      render();
+      // Sync row checkboxes after re-render
+      document.querySelectorAll('input.row-check').forEach(cb => {
+        cb.checked = selectedIds.has(cb.dataset.id || cb.value);
+      });
+      updateBulkBar();
+      showToast(`Selected ${Math.min(n, visible.length)} (${selectedIds.size} total)`, 'success');
+    });
+  });
+
+  // Sort preset dropdown
+  document.getElementById('sortPreset').addEventListener('change', e => {
+    const val = e.target.value;
+    if (val === 'default') {
+      sortKey = 'default'; sortDir = 'asc';
+    } else {
+      const [key, dir] = val.split(':');
+      sortKey = key; sortDir = dir;
+    }
+    render();
+  });
+
+  // Reset filters
+  document.getElementById('resetFiltersBtn').addEventListener('click', () => {
+    searchQuery = '';
+    privacyFilter = '';
+    followersFilter = '';
+    minFollowers = 0;
+    importanceFilter = '';
+    sortKey = 'default'; sortDir = 'asc';
+    document.getElementById('searchInput').value = '';
+    document.getElementById('privacyFilter').value = '';
+    document.getElementById('followersFilter').value = '';
+    document.getElementById('minFollowers').value = '';
+    document.getElementById('importanceFilter').value = '';
+    document.getElementById('sortPreset').value = 'default';
+    render();
+  });
+
+  // Sortable column headers — click to sort
+  document.querySelectorAll('th.sortable').forEach(th => {
+    th.addEventListener('click', () => {
+      const key = th.dataset.sort;
+      if (sortKey === key) {
+        // Toggle direction
+        sortDir = sortDir === 'asc' ? 'desc' : 'asc';
+      } else {
+        sortKey = key;
+        // Sensible default: numeric/date desc, text asc
+        sortDir = (key === 'igFollowers' || key === 'createdTime') ? 'desc' : 'asc';
+      }
+      render();
+    });
+  });
+}
+
+function updateInvitedSortIndicators() {
+  document.querySelectorAll('th.sortable').forEach(th => {
+    th.classList.remove('sorted');
+    const arrow = th.querySelector('.sort-arrow');
+    if (th.dataset.sort === sortKey) {
+      th.classList.add('sorted');
+      if (arrow) arrow.textContent = sortDir === 'asc' ? '  ▴' : '  ▾';
+    } else if (arrow) {
+      arrow.textContent = '';
+    }
+  });
+}
+
+// ============== STATUS MENU ==============
+let openMenu = null;
+function openStatusMenu(anchor, recordId) {
+  closeStatusMenu();
+  const menu = document.createElement('div');
+  menu.className = 'status-menu';
+  menu.innerHTML = MSG_STATUS_OPTIONS.map(s => {
+    return `<button data-status="${escapeAttr(s)}"><span class="dot" style="background:${MSG_DOT[s]}"></span>${escapeHtml(s)}</button>`;
+  }).join('') + '<div class="divider"></div>' +
+    `<button data-status="" class="clear-btn">Remove from invites</button>`;
+
+  document.body.appendChild(menu);
+  const r = anchor.getBoundingClientRect();
+  menu.style.left = (r.left + window.scrollX) + 'px';
+  menu.style.top = (r.bottom + window.scrollY + 4) + 'px';
+
+  menu.querySelectorAll('button').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const newStatus = btn.dataset.status;
+      closeStatusMenu();
+      await setStatus([recordId], newStatus);
+    });
+  });
+
+  setTimeout(() => {
+    document.addEventListener('click', closeStatusMenu, { once: true });
+  }, 0);
+  openMenu = menu;
+}
+function closeStatusMenu() {
+  if (openMenu) { openMenu.remove(); openMenu = null; }
+}
+
+async function setStatus(recordIds, status) {
+  try {
+    const res = await fetch('/api/messaging/set-status', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ recordIds, status })
+    });
+    if (!res.ok) {
+      const e = await res.json().catch(() => ({}));
+      throw new Error(e.error || `HTTP ${res.status}`);
+    }
+    if (status === '') {
+      showToast(`Removed from invites`, 'success');
+    } else {
+      showToast(`Status set to ${status}`, 'success');
+    }
+    selectedIds.clear();
+    await loadGuests();
+  } catch (err) {
+    showToast('Update failed: ' + err.message, 'error');
+  }
+}
+
+// ============== CONFIRM / SEND ==============
+// CONFIRM: sets Messaging Status = Approved AND sends. Used for "Confirm" button on Listed/Semi Approved.
+// SEND:    only sends, no status change. Used for "Send" (Waitlist) and "Resend" (already Approved).
+
+async function sendSingle(recordId, btnEl) {
+  if (btnEl) showSendingState(btnEl);
+  await sendBulk([recordId]);
+}
+
+async function sendQrSingle(recordId, btnEl) {
+  if (btnEl) showSendingState(btnEl);
+  try {
+    const res = await fetch('/api/messaging/send-qr-to-guest', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      // force=true: single-row send bypasses the "must be Approved" check,
+      // letting staff QR-mail anyone (e.g. before they're flipped to Approved).
+      body: JSON.stringify({ recordId, force: true })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+    const parts = [];
+    if (data.emailSent) parts.push('email sent');
+    if (data.smsSent) parts.push('SMS sent');
+    if (data.errors && data.errors.length) parts.push(data.errors.length + ' error(s)');
+    showToast(parts.length ? 'QR ' + parts.join(' · ') : 'Nothing sent', data.errors?.length ? 'error' : 'success');
+    await loadGuests();
+  } catch (err) {
+    showToast('QR send failed: ' + err.message, 'error');
+    await loadGuests();
+  }
+}
+
+// Bulk send via modal. For 1-2 records (single-row actions), skip modal for speed.
+async function sendBulk(recordIds) {
+  if (!recordIds || recordIds.length === 0) return;
+
+  if (false) {
+    return await _sendBulkFast(recordIds);
+  }
+
+  const ok = await runBulkSendModal({
+    title: 'Resend to ' + recordIds.length + ' guest' + (recordIds.length !== 1 ? 's' : '') + '?',
+    body: '<p>This re-sends the current-stage email + SMS for each selected guest. <strong>Status is not changed.</strong></p>',
+    confirmLabel: 'Send to ' + recordIds.length,
+    totalCount: recordIds.length,
+    chunkSize: 20,
+    chunkDelayMs: 2000,
+    ids: recordIds,
+    summaryKeys: [
+      { key: 'sent',      label: 'sent' },
+      { key: 'emailSent', label: 'emails' },
+      { key: 'smsSent',   label: 'SMS' }
+    ],
+    run: async function(slice) {
+      const res = await fetch('/api/messaging/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ recordIds: slice })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'HTTP ' + res.status);
+      return data;
+    }
+  });
+  if (ok) { selectedIds.clear(); await loadGuests(); }
+}
+
+async function _sendBulkFast(recordIds) {
+  try {
+    const res = await fetch('/api/messaging/send', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ recordIds })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'HTTP ' + res.status);
+    const parts = [];
+    if (data.sent > 0) parts.push(data.sent + ' sent');
+    if (data.emailSent > 0) parts.push(data.emailSent + ' email' + (data.emailSent > 1 ? 's' : ''));
+    if (data.smsSent > 0) parts.push(data.smsSent + ' SMS');
+    if (data.failed && data.failed.length > 0) parts.push(data.failed.length + ' failed');
+    showToast(parts.length > 0 ? parts.join(' · ') : 'Nothing to send', data.failed && data.failed.length > 0 ? 'error' : 'success');
+    selectedIds.clear();
+    await loadGuests();
+  } catch (err) {
+    showToast('Send failed: ' + err.message, 'error');
+    await loadGuests();
+  }
+}
+
+async function confirmSingle(recordId, btnEl) {
+  if (btnEl) showSendingState(btnEl);
+  await _confirmBulkFast([recordId], { sendQr: false });
+}
+
+async function confirmBulk(recordIds, opts) {
+  if (!recordIds || recordIds.length === 0) return;
+  const sendQr = opts && opts.sendQr === true;
+
+  if (false) {
+    return await _confirmBulkFast(recordIds, { sendQr: sendQr });
+  }
+
+  const title = sendQr
+    ? 'Confirm + send QR to ' + recordIds.length + ' guest' + (recordIds.length !== 1 ? 's' : '') + '?'
+    : 'Confirm ' + recordIds.length + ' guest' + (recordIds.length !== 1 ? 's' : '') + '?';
+  const bodyLines = sendQr
+    ? '<p>Each selected guest will be set to <strong>Approved</strong> and receive:</p>'
+      + '<ul style="margin:8px 0 0;padding-left:18px;color:#4a4843"><li>Confirmation email</li><li>SMS</li><li>QR access email</li></ul>'
+    : '<p>Each selected guest will be set to <strong>Approved</strong> and receive a confirmation email + SMS.</p>';
+  const summaryKeys = sendQr
+    ? [
+        { key: 'confirmed',   label: 'confirmed' },
+        { key: 'emailSent',   label: 'confirmation emails' },
+        { key: 'smsSent',     label: 'SMS' },
+        { key: 'qrEmailSent', label: 'QR emails' }
+      ]
+    : [
+        { key: 'confirmed', label: 'confirmed' },
+        { key: 'emailSent', label: 'emails' },
+        { key: 'smsSent',   label: 'SMS' }
+      ];
+
+  const ok = await runBulkSendModal({
+    title: title,
+    body: bodyLines,
+    confirmLabel: 'Send to ' + recordIds.length,
+    totalCount: recordIds.length,
+    chunkSize: 20,
+    chunkDelayMs: 2000,
+    ids: recordIds,
+    summaryKeys: summaryKeys,
+    run: async function(slice) {
+      const res = await fetch('/api/messaging/confirm', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ recordIds: slice, sendQr: sendQr })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'HTTP ' + res.status);
+      return data;
+    }
+  });
+  if (ok) { selectedIds.clear(); await loadGuests(); }
+}
+
+async function _confirmBulkFast(recordIds, opts) {
+  const sendQr = opts && opts.sendQr === true;
+  try {
+    const res = await fetch('/api/messaging/confirm', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ recordIds, sendQr })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'HTTP ' + res.status);
+    const parts = [];
+    if (data.confirmed > 0) parts.push(data.confirmed + ' confirmed');
+    if (data.emailSent > 0) parts.push(data.emailSent + ' email' + (data.emailSent > 1 ? 's' : ''));
+    if (data.smsSent > 0) parts.push(data.smsSent + ' SMS');
+    if (data.qrEmailSent > 0) parts.push(data.qrEmailSent + ' QR');
+    if (data.failed && data.failed.length > 0) parts.push(data.failed.length + ' failed');
+    showToast(parts.length > 0 ? parts.join(' · ') : 'Done', data.failed && data.failed.length > 0 ? 'error' : 'success');
+    selectedIds.clear();
+    await loadGuests();
+  } catch (err) {
+    showToast('Confirm failed: ' + err.message, 'error');
+    await loadGuests();
+  }
+}
+
+async function waitlistSingle(recordId, btnEl) {
+  if (btnEl) showSendingState(btnEl);
+  await _waitlistBulkFast([recordId]);
+}
+
+async function waitlistBulk(recordIds) {
+  if (!recordIds || recordIds.length === 0) return;
+
+  // SAFETY: don't send waitlist mails to guests who are already Approved,
+  // Declined, QR-sent or Checked-in. Filter client-side AND let the server
+  // enforce as a second line of defense.
+  const safe = [];
+  const skipped = [];
+  for (const id of recordIds) {
+    const g = (typeof messagingGuests !== 'undefined' ? messagingGuests : []).find(x => x.id === id);
+    if (!g) { safe.push(id); continue; } // unknown — let server decide
+    if (g.messagingStatus === 'Approved')   { skipped.push({ id: id, name: g.name, reason: 'Approved' }); continue; }
+    if (g.messagingStatus === 'Declined')   { skipped.push({ id: id, name: g.name, reason: 'Declined' }); continue; }
+    if (g.qrSentAt)                         { skipped.push({ id: id, name: g.name, reason: 'QR sent' }); continue; }
+    if (g.checkedIn)                        { skipped.push({ id: id, name: g.name, reason: 'Checked in' }); continue; }
+    safe.push(id);
+  }
+
+  if (safe.length === 0) {
+    showToast('All ' + recordIds.length + ' selected are already Approved / Declined / Checked-in — nothing to send.', 'error');
+    return;
+  }
+
+  // Single-row fast path stays single-row
+  if (safe.length === 1 && recordIds.length === 1) {
+    return await _waitlistBulkFast(safe);
+  }
+
+  let bodyHtml = '<p>Each selected guest will be set to <strong>Waitlist</strong> and receive a waitlist email + SMS.</p>';
+  if (skipped.length > 0) {
+    const sampleNames = skipped.slice(0, 5).map(s => escapeHtml(s.name || 'unknown') + ' (' + s.reason + ')').join(', ');
+    const more = skipped.length > 5 ? ' …and ' + (skipped.length - 5) + ' more' : '';
+    bodyHtml += '<div style="margin-top:12px;padding:10px 12px;background:rgba(212,167,68,0.12);border-left:3px solid #D4A744;font-size:12px;color:#7a5a14;line-height:1.5">'
+             + '<strong>' + skipped.length + ' guest' + (skipped.length !== 1 ? 's' : '') + ' will be skipped</strong> — already Approved, Declined, QR-sent or Checked-in:<br>'
+             + '<span style="color:#5a4310">' + sampleNames + more + '</span>'
+             + '</div>';
+  }
+
+  const ok = await runBulkSendModal({
+    title: 'Set ' + safe.length + ' guest' + (safe.length !== 1 ? 's' : '') + ' to Waitlist?',
+    body: bodyHtml,
+    confirmLabel: 'Send Waitlist to ' + safe.length,
+    totalCount: safe.length,
+    chunkSize: 20,
+    chunkDelayMs: 2000,
+    ids: safe,
+    summaryKeys: [
+      { key: 'waitlisted', label: 'waitlisted' },
+      { key: 'emailSent',  label: 'emails' },
+      { key: 'smsSent',    label: 'SMS' }
+    ],
+    run: async function(slice) {
+      const res = await fetch('/api/messaging/waitlist', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ recordIds: slice })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'HTTP ' + res.status);
+      return data;
+    }
+  });
+  if (ok) { selectedIds.clear(); await loadGuests(); }
+}
+
+async function _waitlistBulkFast(recordIds) {
+  try {
+    const res = await fetch('/api/messaging/waitlist', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ recordIds })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'HTTP ' + res.status);
+    const parts = [];
+    if (data.waitlisted > 0) parts.push(data.waitlisted + ' waitlisted');
+    if (data.emailSent > 0) parts.push(data.emailSent + ' email' + (data.emailSent > 1 ? 's' : ''));
+    if (data.smsSent > 0) parts.push(data.smsSent + ' SMS');
+    if (data.failed && data.failed.length > 0) parts.push(data.failed.length + ' failed');
+    showToast(parts.length > 0 ? parts.join(' · ') : 'Done', data.failed && data.failed.length > 0 ? 'error' : 'success');
+    selectedIds.clear();
+    await loadGuests();
+  } catch (err) {
+    showToast('Waitlist failed: ' + err.message, 'error');
+    await loadGuests();
+  }
+}
+
+function showSendingState(btnEl) {
+  btnEl.disabled = true;
+  btnEl.innerHTML = '<span style="display:inline-block;width:11px;height:11px;border:2px solid currentColor;border-top-color:transparent;border-radius:50%;animation:spin 0.7s linear infinite;margin-right:6px"></span>Sending…';
+}
+
+async function rejectSingle(recordId, btnEl) {
+  const guest = messagingGuests.find(g => g.id === recordId);
+  const displayName = guest && guest.name ? guest.name : 'this guest';
+  const currentStatus = guest ? (guest.messagingStatus || '') : '';
+
+  const ok = await showRejectModal({ name: displayName, status: currentStatus });
+  if (!ok) return;
+
+  if (btnEl) showSendingState(btnEl);
+  try {
+    const res = await fetch('/api/messaging/reject', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ recordIds: [recordId] })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+
+    const parts = [];
+    if (data.rejected > 0) parts.push(`${data.rejected} rejected`);
+    if (data.emailSent > 0) parts.push(`${data.emailSent} email`);
+    if (data.smsSent > 0) parts.push(`${data.smsSent} SMS`);
+    if (data.skipped && data.skipped.length > 0) parts.push(`${data.skipped.length} skipped`);
+    if (data.failed && data.failed.length > 0) parts.push(`${data.failed.length} failed`);
+
+    showToast(parts.join(' · ') || 'Done', data.failed?.length > 0 ? 'error' : 'success');
+    await loadGuests();
+  } catch (err) {
+    showToast('Reject failed: ' + err.message, 'error');
+    await loadGuests();
+  }
+}
+
+// ============== BULK BAR ==============
+function bindBulkBar() {
+  document.getElementById('bulkClear').addEventListener('click', () => {
+    selectedIds.clear();
+    document.querySelectorAll('input.row-check').forEach(cb => cb.checked = false);
+    document.getElementById('selectAll').checked = false;
+    updateBulkBar();
+  });
+  document.getElementById('bulkStatus').addEventListener('change', async e => {
+    const value = e.target.value;
+    if (e.target.selectedIndex === 0) return; // placeholder
+    e.target.selectedIndex = 0;
+
+    const visibleIds = new Set(lastRenderedRows.map(g => g.id));
+    const ids = Array.from(selectedIds).filter(id => visibleIds.has(id));
+    if (ids.length === 0) return;
+
+    let newStatus;
+    if (value === '__remove__') {
+      if (!confirm(`Remove ${ids.length} guest${ids.length>1?'s':''} from invites?`)) return;
+      newStatus = '';  // empty string clears Messaging Status
+    } else {
+      newStatus = value;
+    }
+    await setStatus(ids, newStatus);
+  });
+  document.getElementById('bulkImportance').addEventListener('change', async e => {
+    const value = e.target.value;
+    e.target.selectedIndex = 0;
+    if (!value) return;
+    const visibleIds = new Set(lastRenderedRows.map(g => g.id));
+    const ids = Array.from(selectedIds).filter(id => visibleIds.has(id));
+    if (ids.length === 0) return;
+    const importance = value === '__clear__' ? '' : value;
+    showToast(`Updating ${ids.length} guests…`, '');
+    try {
+      const res = await fetch('/api/update-bulk', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ recordIds: ids, fields: { Importance: importance || null } })
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(()=>({}));
+        throw new Error(err.error || 'Bulk update failed');
+      }
+      const data = await res.json();
+      // Update local state for instant feedback
+      for (const id of ids) {
+        const g = messagingGuests.find(x => x.id === id);
+        if (g) g.importance = importance;
+      }
+      render();
+      showToast(`${data.updated} guests → Importance ${importance || 'cleared'}`, 'success');
+    } catch (err) {
+      showToast(err.message, 'error');
+    }
+  });
+  document.getElementById('bulkSendOnly').addEventListener('click', async () => {
+    const visibleIds = new Set(lastRenderedRows.map(g => g.id));
+    const ids = Array.from(selectedIds).filter(id => visibleIds.has(id));
+    if (ids.length === 0) return;
+    // Modal in sendBulk handles confirmation
+    await sendBulk(ids);
+  });
+  document.getElementById('bulkWaitlist').addEventListener('click', async () => {
+    const visibleIds = new Set(lastRenderedRows.map(g => g.id));
+    const ids = Array.from(selectedIds).filter(id => visibleIds.has(id));
+    if (ids.length === 0) return;
+    // Modal in waitlistBulk handles confirmation + Approved-guest skipping
+    await waitlistBulk(ids);
+  });
+  document.getElementById('bulkConfirm').addEventListener('click', async () => {
+    const visibleIds = new Set(lastRenderedRows.map(g => g.id));
+    const ids = Array.from(selectedIds).filter(id => visibleIds.has(id));
+    if (ids.length === 0) return;
+    // Modal in confirmBulk handles confirmation
+    await confirmBulk(ids, { sendQr: false });
+  });
+  document.getElementById('bulkConfirmQr').addEventListener('click', async () => {
+    const visibleIds = new Set(lastRenderedRows.map(g => g.id));
+    const ids = Array.from(selectedIds).filter(id => visibleIds.has(id));
+    if (ids.length === 0) return;
+    // Modal in confirmBulk handles confirmation
+    await confirmBulk(ids, { sendQr: true });
+  });
+}
+function updateBulkBar() {
+  const bar = document.getElementById('bulkBar');
+  // Only count guests that are BOTH selected AND in lastRenderedRows (visible
+  // under current filters). Stale selections from a prior filter state get
+  // ignored so the count never lies.
+  const visibleIds = new Set((lastRenderedRows || []).map(g => g.id));
+  let count = 0;
+  for (const id of selectedIds) {
+    if (visibleIds.has(id)) count++;
+  }
+  if (count > 0) {
+    bar.classList.remove('hidden');
+    document.getElementById('bulkCount').textContent = `${count} selected`;
+  } else {
+    bar.classList.add('hidden');
+  }
+}
+</script>
+
+</body>
+</html>

@@ -1,4 +1,4 @@
-<!-- deploy-marker 1778406072 -->
+<!-- deploy-marker 1778400849 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,169 +8,224 @@
 <meta name="robots" content="noindex,nofollow">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=EB+Garamond:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
-  *{margin:0;padding:0;box-sizing:border-box}
-  body{
-    background:#0F0C09;color:#F1ECDF;
-    font-family:'EB Garamond',Georgia,serif;
-    min-height:100vh;display:flex;align-items:center;justify-content:center;
-    padding:24px;-webkit-font-smoothing:antialiased;
+  :root {
+    --cream: #F1ECDF;
+    --paper: #FBF7EC;
+    --ink: #1A1612;
+    --ink-soft: #4a4337;
+    --ink-faint: #8a8270;
+    --gold: #B8965A;
+    --gold-deep: #9a7d44;
+    --hairline: rgba(26, 22, 18, 0.12);
+    --error: #B0463A;
+    --success: #4a7c59;
   }
-  .card{
-    background:#1A1612;
-    border:1px solid rgba(241,236,223,0.12);
-    max-width:480px;width:100%;
-    padding:48px 40px;text-align:center;
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--cream);
+    color: var(--ink);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    -webkit-font-smoothing: antialiased;
   }
-  .brand{
-    font-family:'Cormorant Garamond',Georgia,serif;font-style:italic;
-    font-size:24px;color:#d4b884;margin-bottom:6px;
+  .card {
+    background: var(--paper);
+    border: 1px solid var(--hairline);
+    border-radius: 12px;
+    max-width: 460px;
+    width: 100%;
+    padding: 48px 40px;
+    text-align: center;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.04);
   }
-  .brand-meta{
-    font-size:10px;letter-spacing:3px;text-transform:uppercase;
-    color:rgba(241,236,223,0.55);margin-bottom:48px;
+  .brand {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 28px;
+    color: var(--gold-deep);
+    margin-bottom: 6px;
   }
-  .eyebrow{
-    font-family:'EB Garamond',Georgia,serif;
-    font-size:11px;letter-spacing:4px;text-transform:uppercase;
-    color:rgba(241,236,223,0.65);margin-bottom:18px;
+  .brand-meta {
+    font-size: 10px;
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-bottom: 40px;
   }
-  h1{
-    font-family:'Cormorant Garamond',Georgia,serif;
-    font-style:italic;font-weight:300;font-size:48px;
-    color:#d4b884;line-height:1;margin-bottom:24px;
-    letter-spacing:-0.5px;
+  h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 28px;
+    font-weight: 500;
+    color: var(--ink);
+    margin-bottom: 16px;
+    line-height: 1.2;
   }
-  .divider{
-    width:60px;height:1px;background:#B8965A;
-    margin:0 auto 28px;
+  p {
+    font-size: 14px;
+    color: var(--ink-soft);
+    line-height: 1.6;
+    margin-bottom: 24px;
   }
-  p{
-    font-size:15px;color:rgba(241,236,223,0.78);
-    line-height:1.65;margin-bottom:16px;
+  .name-line {
+    font-size: 14px;
+    color: var(--ink-faint);
+    margin-bottom: 28px;
+    padding-bottom: 28px;
+    border-bottom: 1px solid var(--hairline);
   }
-  .name-line{
-    font-size:14px;color:rgba(241,236,223,0.55);
-    margin-bottom:32px;padding-top:8px;
+  .name-line strong { color: var(--ink); font-weight: 500; }
+  .actions {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 32px;
   }
-  .name-line strong{color:#F1ECDF;font-weight:400}
-  .actions{display:flex;flex-direction:column;gap:12px;margin-top:32px}
-  button,.btn-link{
-    width:100%;border:none;padding:14px 20px;
-    font-family:'EB Garamond',Georgia,serif;
-    font-size:11px;letter-spacing:3px;text-transform:uppercase;
-    cursor:pointer;transition:all 0.2s;
-    text-decoration:none;display:inline-block;text-align:center;
+  button, .btn-link {
+    width: 100%;
+    border: none;
+    padding: 14px 20px;
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+    display: inline-block;
+    text-align: center;
   }
-  .btn-decline{
-    background:#B8965A;color:#0F0C09;font-weight:500;
+  .btn-decline {
+    background: var(--ink);
+    color: var(--cream);
   }
-  .btn-decline:hover:not(:disabled){background:#d4b884}
-  .btn-decline:disabled{opacity:0.5;cursor:not-allowed}
-  .btn-cancel{
-    background:transparent;color:rgba(241,236,223,0.7);
-    border:1px solid rgba(241,236,223,0.18);
-    text-decoration:none !important;
+  .btn-decline:hover:not(:disabled) {
+    background: var(--error);
   }
-  .btn-cancel:hover{
-    border-color:rgba(241,236,223,0.4);
-    color:#F1ECDF;
+  .btn-decline:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn-cancel {
+    background: transparent;
+    color: var(--ink-soft);
+    border: 1px solid var(--hairline);
+    text-decoration: none !important;
   }
-  .icon-state{
-    font-family:Georgia,serif;font-size:48px;
-    color:#d4b884;margin-bottom:16px;
+  .btn-cancel:hover { border-color: var(--ink); color: var(--ink); }
+
+  .state-success {
+    color: var(--success);
   }
-  .icon-error{color:#c47466}
-  .spinner{
-    display:inline-block;width:14px;height:14px;
-    border:2px solid rgba(15,12,9,0.3);
-    border-top-color:#0F0C09;border-radius:50%;
-    animation:spin 0.8s linear infinite;
-    margin-right:8px;vertical-align:-2px;
+  .state-error {
+    color: var(--error);
   }
-  @keyframes spin{to{transform:rotate(360deg)}}
+  .icon-state {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 56px;
+    margin-bottom: 12px;
+  }
+  .spinner {
+    display: inline-block;
+    width: 14px; height: 14px;
+    border: 2px solid var(--hairline);
+    border-top-color: var(--gold);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin-right: 8px;
+    vertical-align: -2px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
 </style>
 </head>
 <body>
 
 <div class="card" id="card">
   <div class="brand">Château Privé</div>
-  <div class="brand-meta">Cannes · MMXXVI</div>
+  <div class="brand-meta">Cannes · 15 May 2026</div>
 
   <div id="state-loading">
     <h1>Loading…</h1>
   </div>
 
   <div id="state-confirm" style="display:none">
-    <div class="eyebrow">Confirm decline</div>
     <h1>Can't make it?</h1>
-    <div class="divider"></div>
-    <p>If you confirm, we'll remove you from the guest list.<br>
-    This can't be undone — please reach out to the host directly if you change your mind later.</p>
-    <div class="name-line" id="nameLine"></div>
+    <div class="name-line" id="nameLine">Verifying your invitation…</div>
+    <p>If you confirm, we'll remove you from the guest list. This can't be undone — we'd love to know if you change your mind, but please reach out to the host directly.</p>
     <div class="actions">
       <button class="btn-decline" id="confirmBtn">Yes, I can't make it</button>
-      <a href="javascript:window.close();" class="btn-cancel">Never mind</a>
+      <a href="/" class="btn-cancel" onclick="window.close(); return true;">Never mind, close this</a>
     </div>
   </div>
 
   <div id="state-success" style="display:none">
-    <div class="icon-state">&#10003;</div>
-    <div class="eyebrow">Removed</div>
-    <h1>Thank you.</h1>
-    <div class="divider"></div>
+    <div class="icon-state state-success">✓</div>
+    <h1>Removed.</h1>
     <p>Thank you for letting us know. Take care.</p>
-    <p style="font-style:italic;color:rgba(241,236,223,0.5);margin-top:24px">— Château Privé</p>
+    <p style="font-style:italic;color:var(--ink-faint);margin-top:24px">— Château Privé</p>
   </div>
 
   <div id="state-already" style="display:none">
-    <div class="eyebrow">Already removed</div>
-    <h1>Already declined.</h1>
-    <div class="divider"></div>
+    <h1>Already removed</h1>
     <p>You've already declined. No action needed.</p>
   </div>
 
   <div id="state-invalid" style="display:none">
-    <div class="icon-state icon-error">!</div>
-    <div class="eyebrow">Link invalid</div>
-    <h1>Link expired.</h1>
-    <div class="divider"></div>
+    <div class="icon-state state-error">!</div>
+    <h1>Link expired or invalid</h1>
     <p>This link doesn't appear to be valid. If you believe this is an error, please contact the host directly.</p>
   </div>
 </div>
 
 <script>
   const params = new URLSearchParams(window.location.search);
-  const id = params.get('id');
+  const token = params.get('token');
 
   function show(stateId) {
-    ['state-loading','state-confirm','state-success','state-already','state-invalid'].forEach(s => {
-      document.getElementById(s).style.display = s === stateId ? '' : 'none';
+    ['state-loading','state-confirm','state-success','state-already','state-invalid'].forEach(id => {
+      document.getElementById(id).style.display = id === stateId ? '' : 'none';
     });
   }
 
   async function init() {
-    if (!id) { show('state-invalid'); return; }
+    if (!token) { show('state-invalid'); return; }
+
     try {
-      const res = await fetch('/api/decline/lookup?id=' + encodeURIComponent(id));
+      const res = await fetch('/api/decline/lookup?token=' + encodeURIComponent(token));
       const data = await res.json();
-      if (!res.ok || !data.ok) { show('state-invalid'); return; }
-      if (data.alreadyDeclined) { show('state-already'); return; }
-      document.getElementById('nameLine').innerHTML = data.name ? 'Hi <strong>' + data.name + '</strong>' : '';
+
+      if (!res.ok || !data.ok) {
+        show('state-invalid');
+        return;
+      }
+
+      if (data.alreadyDeclined) {
+        show('state-already');
+        return;
+      }
+
+      // Update name line, show confirm
+      document.getElementById('nameLine').innerHTML = `Hi <strong>${data.name || 'there'}</strong>`;
       show('state-confirm');
-    } catch (err) { show('state-invalid'); }
+    } catch (err) {
+      show('state-invalid');
+    }
   }
 
   document.getElementById('confirmBtn').addEventListener('click', async () => {
     const btn = document.getElementById('confirmBtn');
     btn.disabled = true;
     btn.innerHTML = '<span class="spinner"></span>Removing…';
+
     try {
       const res = await fetch('/api/decline/confirm', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id })
+        body: JSON.stringify({ token })
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed');

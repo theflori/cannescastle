@@ -1,0 +1,1748 @@
+<!-- deploy-marker 1778503298 -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Guests · Château Privé</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/shared/theme.css">
+</head>
+<body>
+
+<div class="app">
+  <!-- Sidebar injected here -->
+
+  <main class="app-main">
+    <header class="page-header">
+      <div class="page-title-block">
+        <button class="icon-btn mobile-menu-btn" id="mobileMenuBtn" aria-label="Open menu">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+        <h1 class="page-title">Guests</h1>
+        <span class="page-subtitle" id="headerStats">Loading…</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <button class="btn" id="btnAddAList" title="Manually add an A-List guest" style="border-color:#b8965a;color:#8a6c2e">
+          <svg viewBox="0 0 24 24" fill="currentColor" stroke="none" style="width:14px;height:14px"><polygon points="12 2 14.6 8.6 22 9.3 16.5 14.3 18 22 12 18 6 22 7.5 14.3 2 9.3 9.4 8.6 12 2"/></svg>
+          <span>Add A-List</span>
+        </button>
+        <button class="btn" id="reloadBtn" title="Reload from Airtable">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 4v5h-5"/></svg>
+          <span>Reload</span>
+        </button>
+        <div class="scrape-split" style="display:inline-flex;gap:0;border:1px solid var(--ink);border-radius:4px;overflow:hidden">
+          <button class="btn btn-primary" id="refreshNewBtn" title="Scrape only profiles that haven't been scraped yet" style="border:none;border-radius:0">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 4v5h-5"/></svg>
+            <span id="refreshNewLabel">Scrape new</span>
+          </button>
+          <button class="btn" id="refreshAllBtn" title="Re-scrape all profiles (overwrites existing data)" style="border:none;border-left:1px solid rgba(255,255,255,0.25);border-radius:0;padding:0 10px;background:var(--ink);color:#fff;font-size:11px">
+            <span id="refreshAllLabel">All</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <div class="page-content">
+      <!-- SMS AUTO-SEND NOTE -->
+      <div style="margin:0 0 16px;padding:10px 14px;background:rgba(184,150,90,0.08);border-left:3px solid #b8965a;border-radius:0 4px 4px 0;font-size:12px;color:#6b5430;line-height:1.4">
+        Auto-send delivers SMS only to <strong>+49 (Germany)</strong>. International recipients get email only. Manual international SMS available in the Invites tab.
+      </div>
+
+      
+
+      <!-- STATS (driven by Messaging Status — single source of truth) -->
+      <div class="stats-grid" id="statsGrid">
+        <div class="stat-card"><span class="stat-label">Total RSVPs</span><span class="stat-value" id="stTotal">—</span></div>
+        <div class="stat-card stat-clickable" data-filter-invite="not-listed" title="Click to filter — guests not yet in invites" style="cursor:pointer"><span class="stat-label">Pending</span><span class="stat-value" id="stPending">—</span><span class="stat-meta">not yet handled · click to filter</span></div>
+        <div class="stat-card stat-clickable" data-filter-invite="Approved" title="Click to filter — approved guests" style="cursor:pointer"><span class="stat-label">Approved</span><span class="stat-value gold" id="stConfirmed">—</span><span class="stat-meta">confirmed + sent</span></div>
+        <div class="stat-card stat-clickable" data-filter-invite="Waitlist" title="Click to filter — waitlisted guests" style="cursor:pointer"><span class="stat-label">Waitlisted</span><span class="stat-value" id="stWaitlist">—</span></div>
+        <div class="stat-card stat-clickable" data-filter-invite="Declined" title="Click to filter — declined guests" style="cursor:pointer"><span class="stat-label">Declined</span><span class="stat-value" id="stDeclined">—</span></div>
+        <div class="stat-card stat-clickable" data-filter-checkin="in" title="Click to filter — guests checked in at the event" style="cursor:pointer"><span class="stat-label">Checked In</span><span class="stat-value" style="color:#1f7a3c" id="stCheckedIn">—</span><span class="stat-meta" id="stCheckedInRatio">of approved</span></div>
+      </div>
+
+      <!-- FILTERS -->
+      <div class="filter-bar">
+        <div class="grow">
+          <input type="text" class="input input-search" id="searchInput" placeholder="Search by name, email, IG, company, referrer…">
+        </div>
+        <select class="input" id="inviteFilter" style="width:auto" title="Filter by invite stage">
+          <option value="">All invites</option>
+          <option value="not-listed">Not listed</option>
+          <option value="Listed">Listed</option>
+          <option value="Semi Approved">Semi Approved</option>
+          <option value="Waitlist">Waitlist</option>
+          <option value="Approved">Approved</option>
+          <option value="Declined">Declined</option>
+          <option value="issues">⚠ Send issues</option>
+        </select>
+        <select class="input" id="statusFilter" style="width:auto">
+          <option value="">All statuses</option>
+        </select>
+        <select class="input" id="tagFilter" style="width:auto">
+          <option value="">All tags</option>
+        </select>
+        <select class="input" id="importanceFilter" style="width:auto" title="Filter by Importance">
+          <option value="">All importance</option>
+          <option value="VIP/Car">VIP/Car</option>
+          <option value="Tier 1">Tier 1</option>
+          <option value="Tier 2">Tier 2</option>
+          <option value="Tier 3">Tier 3</option>
+          <option value="__none__">— Unset —</option>
+        </select>
+        <select class="input" id="checkinFilter" style="width:auto" title="Filter by check-in status">
+          <option value="">All check-in</option>
+          <option value="in">Checked in ✓</option>
+          <option value="out">Not checked in</option>
+        </select>
+        <input type="number" class="input" id="minFollowers" placeholder="Min followers" min="0" style="width:140px">
+        <select class="input" id="privacyFilter" style="width:auto" title="Filter by Instagram profile privacy">
+          <option value="">All privacy</option>
+          <option value="public">Public only</option>
+          <option value="private">Private only</option>
+          <option value="unknown">Unknown</option>
+        </select>
+        <select class="input" id="sortPreset" style="width:auto">
+          <option value="createdTime:desc">Newest first</option>
+          <option value="createdTime:asc">Oldest first</option>
+          <option value="igFollowers:desc">Most followers</option>
+          <option value="igFollowers:asc">Least followers</option>
+          <option value="name:asc">Name A→Z</option>
+          <option value="name:desc">Name Z→A</option>
+          <option value="status:asc">Status</option>
+          <option value="privacy:asc">Private first</option>
+          <option value="privacy:desc">Public first</option>
+        </select>
+        <button class="btn btn-ghost btn-sm" id="resetFiltersBtn">Reset</button>
+        <div style="display:flex;align-items:center;gap:6px;padding:4px 8px;background:rgba(184,150,90,0.1);border:1px solid rgba(184,150,90,0.3);border-radius:4px" title="Quickly select the first N visible (unselected) guests for batch send">
+          <span style="font-size:11px;color:#6b6b66;font-weight:500">SELECT</span>
+          <button class="btn btn-ghost btn-sm" data-select-n="10" style="padding:3px 9px;min-width:auto">10</button>
+          <button class="btn btn-ghost btn-sm" data-select-n="20" style="padding:3px 9px;min-width:auto">20</button>
+          <button class="btn btn-ghost btn-sm" data-select-n="50" style="padding:3px 9px;min-width:auto">50</button>
+          <button class="btn btn-ghost btn-sm" data-select-n="100" style="padding:3px 9px;min-width:auto">100</button>
+        </div>
+        <button class="btn btn-ghost btn-sm" id="exportCsvBtn" title="Export visible guests to CSV (respects current filters)" style="margin-left:auto">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13" style="margin-right:5px;vertical-align:-2px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Export CSV <span id="exportCount" style="opacity:0.6;margin-left:4px"></span>
+        </button>
+      </div>
+
+      <!-- BULK BAR (hidden when nothing selected) -->
+      <div class="bulk-bar hidden" id="bulkBar">
+        <span class="count" id="bulkCount">0 selected</span>
+        <select class="input" id="bulkStatus" style="width:auto;background:rgba(255,255,255,0.1);color:#fff;border-color:rgba(255,255,255,0.25)">
+          <option value="">Set status…</option>
+        </select>
+        <select class="input" id="bulkImportance" style="width:auto;background:rgba(255,255,255,0.1);color:#fff;border-color:rgba(255,255,255,0.25)" title="Set Importance for all selected">
+          <option value="">Set importance…</option>
+          <option value="VIP/Car">VIP/Car</option>
+          <option value="Tier 1">Tier 1</option>
+          <option value="Tier 2">Tier 2</option>
+          <option value="Tier 3">Tier 3</option>
+          <option value="__clear__">— Clear —</option>
+        </select>
+        <button class="btn" id="bulkListMessaging" style="background:var(--gold);border-color:var(--gold);color:var(--ink);font-weight:500" title="Add selected to Invites (skips guests already in invites)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13" style="margin-right:5px;vertical-align:-2px"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          List for Invites
+        </button>
+        <button class="btn" id="bulkWaitlistSend" style="border-color:#D4A744;color:#D4A744" title="Set selected to Waitlist + send waitlist email and SMS">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13" style="margin-right:5px;vertical-align:-2px"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          Waitlist & send
+        </button>
+        <button class="btn" id="bulkConfirmSend" style="background:var(--gold);border-color:var(--gold);color:var(--ink);font-weight:500" title="Set selected to Approved + send confirmation email + SMS (no QR)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="13" height="13" style="margin-right:5px;vertical-align:-2px"><polyline points="20 6 9 17 4 12"/></svg>
+          Confirm & send
+        </button>
+        <button class="btn" id="bulkConfirmQr" style="background:#b8965a;border-color:#b8965a;color:#fff;font-weight:500" title="Set selected to Approved + send confirmation email + SMS + QR access mail">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13" style="margin-right:5px;vertical-align:-2px"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3h-3zM20 14h1v1h-1zM14 20h1v1h-1zM20 20h1v1h-1z"/></svg>
+          Confirm & send QR
+        </button>
+        <button class="btn" id="bulkDeselectBtn">Clear</button>
+      </div>
+
+      <!-- TABLE -->
+      <div class="card" style="overflow:hidden">
+        <div class="table-scroll">
+          <table class="data-table" id="guestTable">
+          <thead>
+            <tr>
+              <th class="col-check">
+                <span class="checkbox" id="selectAllCb" title="Select all visible"></span>
+              </th>
+              <th class="sortable col-name" data-sort="name">Name <span class="sort-arrow">▾</span></th>
+              <th class="sortable col-ig" data-sort="instagram">Instagram <span class="sort-arrow">▾</span></th>
+              <th class="sortable col-followers" data-sort="igFollowers">Followers <span class="sort-arrow">▾</span></th>
+              <th class="sortable col-status" data-sort="status">Status <span class="sort-arrow">▾</span></th>
+              <th class="col-invite">Invite</th>
+              <th class="col-tags">Referred By</th>
+              <th class="col-notes">Importance</th>
+              <th class="sortable col-submitted" data-sort="createdTime">Date <span class="sort-arrow">▾</span></th>
+              <th class="col-phone">Phone</th>
+              <th class="col-invite-actions">Invite actions</th>
+              <th class="col-actions"></th>
+            </tr>
+          </thead>
+          <tbody id="tbody">
+            <tr><td colspan="12"><div class="empty"><div class="glyph">…</div><div class="title">Loading guests</div></div></td></tr>
+          </tbody>
+        </table>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<!-- A-LIST ADD MODAL -->
+<div class="modal-overlay" id="alistModal" style="display:none;position:fixed;inset:0;background:rgba(15,12,9,0.55);z-index:1000;align-items:flex-start;justify-content:center;padding:40px 20px;overflow-y:auto">
+  <div style="background:#fff;width:100%;max-width:560px;border-radius:6px;box-shadow:0 20px 60px rgba(0,0,0,0.3);overflow:hidden">
+    <div style="padding:20px 24px;border-bottom:1px solid var(--hairline);display:flex;align-items:center;justify-content:space-between">
+      <div>
+        <h2 style="margin:0;font-family:'Inter',sans-serif;font-size:16px;font-weight:600;color:var(--ink);display:flex;align-items:center;gap:8px">
+          <svg viewBox="0 0 24 24" fill="#b8965a" stroke="none" style="width:16px;height:16px"><polygon points="12 2 14.6 8.6 22 9.3 16.5 14.3 18 22 12 18 6 22 7.5 14.3 2 9.3 9.4 8.6 12 2"/></svg>
+          Add A-List
+        </h2>
+        <p style="margin:3px 0 0;font-size:12px;color:var(--ink-soft)">Tagged "A-List" + starred in lists.</p>
+      </div>
+      <button class="btn btn-ghost" id="alistCloseBtn">Close</button>
+    </div>
+
+    <!-- TAB SWITCHER -->
+    <div style="display:flex;border-bottom:1px solid var(--hairline);background:#fafaf7">
+      <button class="alist-tab" id="alistTabSingle" data-tab="single" style="flex:1;padding:12px 18px;background:#fff;border:none;border-bottom:2px solid var(--ink);cursor:pointer;font-family:Inter,sans-serif;font-size:13px;font-weight:500;color:var(--ink)">Single entry</button>
+      <button class="alist-tab" id="alistTabBatch" data-tab="batch" style="flex:1;padding:12px 18px;background:transparent;border:none;border-bottom:2px solid transparent;cursor:pointer;font-family:Inter,sans-serif;font-size:13px;color:var(--ink-soft)">Batch paste</button>
+    </div>
+
+    <!-- SINGLE TAB -->
+    <div id="alistPaneSingle" style="padding:20px 24px;display:flex;flex-direction:column;gap:18px">
+      <div>
+        <label style="display:block;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--ink-soft);margin-bottom:5px">Full name *</label>
+        <input class="input" id="alistName" type="text" placeholder="Florian Huber" style="width:100%">
+      </div>
+      <div>
+        <label style="display:block;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--ink-soft);margin-bottom:10px">Plus-One Allowance</label>
+        <div id="alistAllowanceGroup" style="display:flex;flex-wrap:wrap;gap:8px">
+          <label class="allowance-opt" data-val="0" style="flex:1;min-width:90px"><input type="radio" name="alistAllowance" value="0" checked style="display:none"><span>Solo</span><small>just them</small></label>
+          <label class="allowance-opt" data-val="1" style="flex:1;min-width:90px"><input type="radio" name="alistAllowance" value="1" style="display:none"><span>+1</span><small>one guest</small></label>
+          <label class="allowance-opt" data-val="2" style="flex:1;min-width:90px"><input type="radio" name="alistAllowance" value="2" style="display:none"><span>+2</span><small>two guests</small></label>
+          <label class="allowance-opt" data-val="3" style="flex:1;min-width:90px"><input type="radio" name="alistAllowance" value="3" style="display:none"><span>+3</span><small>three guests</small></label>
+          <label class="allowance-opt" data-val="unlimited" style="flex:1;min-width:90px"><input type="radio" name="alistAllowance" value="unlimited" style="display:none"><span>Open</span><small>everyone they bring</small></label>
+        </div>
+      </div>
+    </div>
+
+    <!-- BATCH TAB -->
+    <div id="alistPaneBatch" style="display:none;padding:20px 24px">
+      <p style="margin:0 0 10px;font-size:12px;color:var(--ink-soft);line-height:1.5">
+        Paste one person per line. Format: <code style="font-size:11px;background:#f0eee8;padding:1px 4px;border-radius:2px">Name, allowance</code> — allowance is <code style="font-size:11px;background:#f0eee8;padding:1px 4px;border-radius:2px">0</code>, <code style="font-size:11px;background:#f0eee8;padding:1px 4px;border-radius:2px">1</code>, <code style="font-size:11px;background:#f0eee8;padding:1px 4px;border-radius:2px">2</code>, <code style="font-size:11px;background:#f0eee8;padding:1px 4px;border-radius:2px">3</code> or <code style="font-size:11px;background:#f0eee8;padding:1px 4px;border-radius:2px">open</code>. If left empty → solo.
+      </p>
+      <p style="margin:0 0 10px;font-size:11px;color:var(--ink-faint);line-height:1.6;font-style:italic">
+        Examples:<br>
+        <span style="font-family:Menlo,monospace;color:var(--ink)">Florian Huber, 1</span> → +1<br>
+        <span style="font-family:Menlo,monospace;color:var(--ink)">Anna Wintour, 0</span> → solo<br>
+        <span style="font-family:Menlo,monospace;color:var(--ink)">Tom Ford, 3</span> → +3<br>
+        <span style="font-family:Menlo,monospace;color:var(--ink)">Mike Tyson, open</span> → open invite<br>
+        <span style="font-family:Menlo,monospace;color:var(--ink)">Sergio Martinez</span> → solo (default)
+      </p>
+      <textarea class="input" id="alistBatch" rows="8" placeholder="Florian Huber, 1&#10;Anna Wintour, 0&#10;Tom Ford, 3&#10;Mike Tyson, open" style="width:100%;font-family:Menlo,Monaco,monospace;font-size:13px;resize:vertical"></textarea>
+      <div style="margin-top:8px;font-size:11px;color:var(--ink-faint)" id="alistBatchCount">0 entries</div>
+    </div>
+
+    <div style="padding:16px 24px;border-top:1px solid var(--hairline);display:flex;justify-content:space-between;align-items:center;gap:8px;background:#fafaf7">
+      <div style="font-size:11px;color:var(--ink-faint)" id="alistStatus"></div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-ghost" id="alistCancelBtn">Cancel</button>
+        <button class="btn btn-gold" id="alistSaveBtn">Add to A-List</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Hidden context menu / status menu -->
+<div class="menu" id="statusMenu"></div>
+
+<script src="/shared/app.js"></script>
+<script>
+const App = window.ChateauApp;
+const { showToast, authFetch, escapeHtml, escapeAttr, formatNumber, formatDate, injectSidebar, renderFitIndicator, exportToCsv } = App;
+
+// ============== STATE ==============
+const STATUS_OPTIONS = ['Pending', 'Waitlisted', 'Approved', 'Approved Ticket sent', 'Rejected'];
+// Display labels shorter than full Airtable values, so pills stay compact
+const STATUS_LABEL = {
+  'Pending': 'Pending',
+  'Waitlisted': 'Waitlist',
+  'Approved': 'Approved',
+  'Approved Ticket sent': 'Ticket Sent',
+  'Rejected': 'Rejected'
+};
+// Map status to pill class (keys = exact Airtable values)
+const STATUS_PILL = {
+  'Pending': 'pill-pending',
+  'Waitlisted': 'pill-waitlist',
+  'Approved': 'pill-approved',
+  'Approved Ticket sent': 'pill-sent',
+  'Rejected': 'pill-rejected'
+};
+
+let allGuests = [];
+let sortKey = 'createdTime';
+let sortDir = 'desc';
+let filters = { search: '', status: '', invite: '', tag: '', importance: '', checkin: '', minFollowers: 0, privacy: '' };
+let selectedIds = new Set();
+
+// ============== INIT ==============
+document.addEventListener('DOMContentLoaded', async () => {
+  await injectSidebar('guests');
+  populateStatusOptions();
+  bindEvents();
+  await loadGuests();
+});
+
+function populateStatusOptions() {
+  const filterSel = document.getElementById('statusFilter');
+  const bulkSel = document.getElementById('bulkStatus');
+  for (const s of STATUS_OPTIONS) {
+    filterSel.add(new Option(s, s));
+    bulkSel.add(new Option('Set: ' + s, s));
+  }
+}
+
+// ============== DATA ==============
+async function loadGuests() {
+  try {
+    const res = await authFetch('/api/guests');
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    allGuests = data.guests || [];
+    renderStats();
+    render();
+    updateNavBadge();
+  } catch (err) {
+    showToast('Failed to load: ' + err.message, 'error');
+    document.getElementById('tbody').innerHTML =
+      `<tr><td colspan="12"><div class="empty"><div class="glyph">!</div><div class="title">Failed to load</div><div class="subtitle">${escapeHtml(err.message)}</div></div></td></tr>`;
+  }
+}
+
+function updateNavBadge() {
+  const badge = document.getElementById('navGuestCount');
+  if (badge) badge.textContent = allGuests.length;
+}
+
+function renderStats() {
+  const total = allGuests.length;
+
+  // All stats now driven by Messaging Status — single source of truth across pages
+  // Approved = Messaging Status === 'Approved' (= confirmed via Invited tab, SMS+Email sent)
+  // Waitlisted = Messaging Status === 'Waitlist'
+  // Declined = Messaging Status === 'Declined'
+  // Pending = no Messaging Status OR Listed OR Semi Approved (not yet decided/sent)
+  const approved = allGuests.filter(g => g.messagingStatus === 'Approved').length;
+  const waitlisted = allGuests.filter(g => g.messagingStatus === 'Waitlist').length;
+  const declined = allGuests.filter(g => g.messagingStatus === 'Declined').length;
+  const pending = total - approved - waitlisted - declined;
+  const checkedIn = allGuests.filter(g => g.checkedIn).length;
+
+  document.getElementById('stTotal').textContent = total;
+  document.getElementById('stPending').textContent = pending;
+  document.getElementById('stConfirmed').textContent = approved;
+  document.getElementById('stWaitlist').textContent = waitlisted;
+  document.getElementById('stDeclined').textContent = declined;
+  document.getElementById('stCheckedIn').textContent = checkedIn;
+  const checkedInRatioEl = document.getElementById('stCheckedInRatio');
+  if (checkedInRatioEl) checkedInRatioEl.textContent = approved > 0 ? `${checkedIn} / ${approved} approved` : 'no approved yet';
+
+  document.getElementById('headerStats').textContent =
+    `${total} guests · ${pending} pending · ${approved} approved · ${waitlisted} waitlisted · ${checkedIn} checked in`;
+}
+
+// ============== TAG FILTER POPULATION ==============
+function refreshTagFilter() {
+  const tagFilter = document.getElementById('tagFilter');
+  const currentValue = tagFilter.value;
+  // Collect unique tags
+  const tags = new Set();
+  for (const g of allGuests) {
+    if (Array.isArray(g.tags)) g.tags.forEach(t => tags.add(t));
+  }
+  // Rebuild
+  while (tagFilter.options.length > 1) tagFilter.remove(1);
+  if (tags.size === 0) {
+    tagFilter.disabled = true;
+    tagFilter.style.opacity = 0.5;
+  } else {
+    tagFilter.disabled = false;
+    tagFilter.style.opacity = 1;
+    [...tags].sort().forEach(t => tagFilter.add(new Option(t, t)));
+    tagFilter.value = currentValue || '';
+  }
+}
+
+// ============== RENDER ==============
+function render() {
+  refreshTagFilter();
+  let rows = applyFilters(allGuests);
+  rows = sortRows(rows);
+  const tbody = document.getElementById('tbody');
+
+  // Update export count display
+  const exportCount = document.getElementById('exportCount');
+  if (exportCount) exportCount.textContent = rows.length > 0 ? `(${rows.length})` : '';
+
+  if (rows.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="12"><div class="empty"><div class="glyph">—</div><div class="title">No guests match the filters</div><div class="subtitle">Try clearing the filters or search query.</div></div></td></tr>`;
+    updateSortIndicators();
+    updateBulkBar();
+    return;
+  }
+
+  tbody.innerHTML = rows.map(rowHtml).join('');
+  updateSortIndicators();
+  updateBulkBar();
+  bindRowEvents();
+}
+
+// ============== IMPORTANCE CELL ==============
+const IMPORTANCE_OPTIONS = ['VIP/Car', 'Tier 1', 'Tier 2', 'Tier 3'];
+
+function importanceCellStyle(val) {
+  const base = 'appearance:none;-webkit-appearance:none;-moz-appearance:none;'
+    + 'width:100%;padding:5px 8px;border-radius:4px;font-size:11px;font-weight:600;'
+    + 'letter-spacing:0.4px;text-transform:uppercase;line-height:1.2;cursor:pointer;'
+    + 'outline:none;font-family:inherit;text-align:left';
+  const pill = (typeof importancePillStyle === 'function')
+    ? importancePillStyle(val)
+    : 'background:transparent;color:#888;border:1px solid #ccc';
+  return base + ';' + pill;
+}
+
+function renderImportanceCell(g) {
+  const current = g.importance || '';
+  const opts = ['<option value="">—</option>']
+    .concat(IMPORTANCE_OPTIONS.map(o =>
+      `<option value="${escapeAttr(o)}"${o === current ? ' selected' : ''}>${escapeHtml(o)}</option>`
+    ))
+    .join('');
+  return `<select class="importance-select" data-id="${g.id}" data-prev="${escapeAttr(current)}" style="${importanceCellStyle(current)}">${opts}</select>`;
+}
+
+function rowHtml(g) {
+  const initial = (g.name || '?').trim().charAt(0).toUpperCase();
+  const avatar = g.igAvatarUrl
+    ? `<span class="avatar" style="background-image:url('/api/avatar?url=${encodeURIComponent(g.igAvatarUrl)}')"></span>`
+    : `<span class="avatar avatar-placeholder">${escapeHtml(initial)}</span>`;
+
+  const followers = g.igFollowers !== null
+    ? `<span class="tabular ${g.igFollowers >= 10000 ? 'text-gold' : ''}">${formatNumber(g.igFollowers)}</span>`
+    : `<span class="muted">—</span>`;
+
+  const statusKey = g.status || 'Pending';
+  const pillClass = STATUS_PILL[statusKey] || 'pill-default';
+  const pillLabel = STATUS_LABEL[statusKey] || statusKey;
+  const statusPill = `<span class="pill ${pillClass} pill-clickable" data-action="status" data-id="${g.id}" title="${escapeAttr(statusKey)}">${escapeHtml(pillLabel)}</span>`;
+
+  // Messaging indicator: shown when guest is already in the messaging workflow
+  const msgIndicator = g.messagingStatus
+    ? `<a href="/messaging" class="msg-indicator msg-${g.messagingStatus.toLowerCase().replace(/\s/g, '-')}" title="In invites: ${escapeAttr(g.messagingStatus)} — click to open invites" onclick="event.stopPropagation()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+       </a>`
+    : '';
+
+  const needsHandleEdit = g.igFollowers === null;
+  const editBtn = needsHandleEdit
+    ? `<button class="ig-edit-btn" data-action="edit-ig" data-id="${g.id}" data-handle="${escapeAttr(g.instagram)}" title="Edit Instagram handle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></button>`
+    : '';
+  const igDisplay = g.instagram && g.instagram.length > 30
+    ? escapeHtml(g.instagram.substring(0, 30)) + '…'
+    : escapeHtml(g.instagram);
+  // Lock icon prefix when profile is private — placed OUTSIDE ig-handle so it doesn't trigger ellipsis
+  const lockIcon = g.igIsPrivate === true
+    ? `<svg class="ig-lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-label="Private profile" width="12" height="12" style="flex-shrink:0;color:#c47466"><title>Private profile</title><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>`
+    : '';
+  const igCell = g.instagram
+    ? `<div class="ig-cell" data-id="${g.id}">${lockIcon}<span class="ig-handle" title="${g.igIsPrivate === true ? 'Private — ' : ''}@${escapeAttr(g.instagram)}"><a href="https://instagram.com/${encodeURIComponent(g.instagram)}" target="_blank" rel="noopener">@${igDisplay}</a></span>${editBtn}</div>`
+    : `<div class="ig-cell" data-id="${g.id}"><span class="muted">—</span>${editBtn}</div>`;
+
+  const referralHtml = g.referredBy
+    ? `<span style="font-size:13px;color:var(--ink)">${escapeHtml(g.referredBy)}</span>`
+    : '<span class="muted">—</span>';
+
+  const notesPreview = g.notes
+    ? `<span class="notes-preview" title="${escapeAttr(g.notes)}">${escapeHtml(g.notes)}</span>`
+    : '<span class="muted">—</span>';
+  const notesCell = `<div class="ig-cell" data-id="${g.id}">${notesPreview}<button class="row-edit-btn" data-action="edit-notes" data-id="${g.id}" data-notes="${escapeAttr(g.notes)}" title="Edit notes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></button></div>`;
+
+  const submitted = g.createdTime ? formatDate(g.createdTime) : '';
+  const isSelected = selectedIds.has(g.id);
+
+  // Invite pill — shows current Messaging Status or "—" if not yet listed
+  const ms = g.messagingStatus || '';
+  const invitePillMap = {
+    'Listed': { cls: 'pill-listed', label: 'Listed' },
+    'Semi Approved': { cls: 'pill-semi', label: 'Semi' },
+    'Waitlist': { cls: 'pill-waitlist', label: 'Waitlist' },
+    'Approved': { cls: 'pill-approved', label: 'Approved' },
+    'Declined': { cls: 'pill-declined', label: 'Declined' }
+  };
+  const inviteCell = ms && invitePillMap[ms]
+    ? `<span class="pill ${invitePillMap[ms].cls}" title="In invites: ${escapeAttr(ms)}">${invitePillMap[ms].label}</span>`
+    : `<span class="muted" title="Not in invites yet">—</span>`;
+
+  // Plus-one chip
+  const plusOneChip = g.plusOneOfName
+    ? `<span class="plus-one-chip" title="Plus-one of ${escapeAttr(g.plusOneOfName)}" style="display:inline-flex;align-items:center;padding:1px 6px;background:rgba(184,150,90,0.12);color:#8a6c2e;border-radius:10px;font-size:10px;font-weight:500;letter-spacing:0.3px;white-space:nowrap;margin-left:6px">+1 · ${escapeHtml(g.plusOneOfName)}</span>`
+    : '';
+
+  // Invite-stage actions per row
+  let inviteActions;
+  const isAList = isAListGuest(g);
+  if (isAList) {
+    // A-List = auto-confirmed, no outreach. Just show a green check, plus reject if you change your mind.
+    inviteActions = `<div class="action-btn-group" style="align-items:center">
+      <span class="alist-check" title="A-List · automatically confirmed, no email/SMS sent" style="display:inline-flex;align-items:center;gap:5px;padding:5px 10px;background:rgba(58,138,74,0.1);color:#3a8a4a;border:1px solid rgba(58,138,74,0.3);border-radius:6px;font-size:11px;font-weight:500;letter-spacing:0.04em">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:11px;height:11px"><polyline points="20 6 9 17 4 12"/></svg>
+        On list
+      </span>
+      <button class="send-btn reject-btn" data-action="reject" data-id="${g.id}" title="Remove from list" style="background:transparent;color:#c4544a;border:1px solid rgba(196,84,74,0.4);padding:5px 8px">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>`;
+  } else if (ms === 'Listed' || ms === 'Semi Approved') {
+    inviteActions = `<div class="action-btn-group">
+      <button class="send-btn waitlist-btn" data-action="waitlist" data-id="${g.id}" title="Set to Waitlist + send waitlist email and SMS">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Waitlist
+      </button>
+      <button class="send-btn confirm-btn" data-action="confirm" data-id="${g.id}" title="Set to Approved + send confirmation email and SMS">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Confirm
+      </button>
+    </div>`;
+  } else if (ms === 'Approved' || ms === 'Waitlist') {
+    inviteActions = `<div class="action-btn-group">
+      <button class="send-btn" data-action="resend" data-id="${g.id}" title="Re-send the ${ms === 'Approved' ? 'confirmation' : 'waitlist'} email and SMS">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 4v5h-5"/></svg> Resend
+      </button>
+      <button class="send-btn reject-btn" data-action="reject" data-id="${g.id}" title="Reject this guest — sends apology email/SMS, marks Declined" style="background:transparent;color:#c4544a;border:1px solid rgba(196,84,74,0.4);padding:5px 8px">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>`;
+  } else if (ms === 'Declined') {
+    inviteActions = `<span class="muted" style="font-size:11px">declined</span>`;
+  } else {
+    // Not yet in invites
+    inviteActions = `<button class="send-btn list-btn" data-action="list-one" data-id="${g.id}" title="List this guest for invites" style="background:transparent;color:var(--ink);border:1px solid var(--ink)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> List
+    </button>`;
+  }
+
+  // Mobile-only meta block — IG, Followers, Referred By, Phone, Tags, Invite status
+  const mobileMetaParts = [];
+  if (g.instagram) mobileMetaParts.push('IG: <strong><a href="https://instagram.com/' + encodeURIComponent(g.instagram) + '" target="_blank" rel="noopener" style="color:var(--gold-deep,#8a6c2e);text-decoration:underline" onclick="event.stopPropagation()">@' + escapeHtml(g.instagram) + '</a></strong>');
+  if (g.igFollowers !== null && g.igFollowers !== undefined) mobileMetaParts.push('Followers: <strong>' + formatNumber(g.igFollowers) + '</strong>');
+  if (g.phone) mobileMetaParts.push('Phone: <strong>' + escapeHtml(g.phone) + '</strong>');
+  if (g.referredBy) mobileMetaParts.push('Ref: <strong>' + escapeHtml(g.referredBy) + '</strong>');
+  if (g.tags && g.tags.length) mobileMetaParts.push('Tags: <strong>' + g.tags.map(t => escapeHtml(t)).join(', ') + '</strong>');
+  const mobileMeta = mobileMetaParts.length
+    ? '<div class="mobile-row-meta">' + mobileMetaParts.join(' &nbsp;·&nbsp; ') + '</div>'
+    : '';
+
+  return `
+    <tr class="${isSelected ? 'selected' : ''}" data-id="${g.id}">
+      <td class="col-check"><span class="checkbox row-checkbox ${isSelected ? 'checked' : ''}" data-id="${g.id}"></span></td>
+      <td class="col-name">
+        <div class="name-block">
+          ${avatar}
+          <div class="name-text">
+            <div style="display:flex;align-items:center;flex-wrap:wrap;gap:4px">
+              ${isAListGuest(g) ? '<span class="alist-star" title="A-List guest" style="display:inline-block;margin-right:4px;color:#b8965a;font-size:14px;line-height:1">★</span>' : ''}<span style="font-weight:500;color:var(--ink)">${escapeHtml(g.name) || '—'}</span>${renderFitIndicator(g)}${renderAllowanceChip(g)}
+              ${g.qrSentAt ? '<span title="QR + event details sent ' + escapeAttr(formatDate(g.qrSentAt)) + '" style="display:inline-flex;align-items:center;padding:1px 6px;background:rgba(31,122,60,0.12);color:#1f7a3c;border-radius:10px;font-size:10px;font-weight:600;letter-spacing:0.3px">QR ✓</span>' : ''}
+              ${g.checkedIn ? '<span title="Checked in ' + escapeAttr(formatDate(g.checkedInAt)) + ' (' + g.checkInCount + ' scan' + (g.checkInCount !== 1 ? 's' : '') + ')" style="display:inline-flex;align-items:center;padding:1px 6px;background:#1f7a3c;color:#fff;border-radius:10px;font-size:10px;font-weight:600;letter-spacing:0.3px">IN</span>' : ''}
+              ${plusOneChip}
+            </div>
+            <div style="font-size:11px;color:var(--ink-faint)">${escapeHtml(g.email)}</div>
+            ${mobileMeta}
+          </div>
+        </div>
+      </td>
+      <td class="col-ig">${igCell}</td>
+      <td class="col-followers">${followers}</td>
+      <td class="col-status"><div class="status-cell">${statusPill}${msgIndicator}</div></td>
+      <td class="col-invite">${inviteCell}</td>
+      <td class="col-tags">${referralHtml}</td>
+      <td class="col-notes">${renderImportanceCell(g)}</td>
+      <td class="col-submitted"><span class="muted">${submitted}</span></td>
+      <td class="col-phone"><span class="tabular muted">${escapeHtml(g.phone)}</span></td>
+      <td class="col-invite-actions">${inviteActions}</td>
+      <td class="col-actions">
+        <div class="flex items-center gap-2" style="justify-content:flex-end">
+          <button class="icon-btn" data-action="refresh-one" data-id="${g.id}" title="Refresh IG data for this guest">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 4v5h-5"/></svg>
+          </button>
+        </div>
+      </td>
+    </tr>
+  `;
+}
+
+function applyFilters(list) {
+  return list.filter(g => {
+    if (filters.status && g.status !== filters.status) return false;
+    if (filters.invite) {
+      if (filters.invite === 'not-listed') {
+        if (g.messagingStatus) return false;
+      } else if (filters.invite === 'issues') {
+        if (g.lastSendErrorLevel !== 'error' && g.lastSendErrorLevel !== 'warning') return false;
+      } else {
+        if (g.messagingStatus !== filters.invite) return false;
+      }
+    }
+    if (filters.tag) {
+      // Match via Tags field if it exists, OR via Source = 'Manual A-List' for A-List filter
+      const hasTag = Array.isArray(g.tags) && g.tags.includes(filters.tag);
+      const matchesSource = (filters.tag === 'A-List' && g.source === 'Manual A-List');
+      if (!hasTag && !matchesSource) return false;
+    }
+    if (filters.importance) {
+      if (filters.importance === '__none__') {
+        if (g.importance) return false;
+      } else {
+        if (g.importance !== filters.importance) return false;
+      }
+    }
+    if (filters.checkin === 'in' && !g.checkedIn) return false;
+    if (filters.checkin === 'out' && g.checkedIn) return false;
+    if (filters.minFollowers > 0) {
+      if (g.igFollowers === null || g.igFollowers < filters.minFollowers) return false;
+    }
+    if (filters.privacy === 'public' && g.igIsPrivate !== false) return false;
+    if (filters.privacy === 'private' && g.igIsPrivate !== true) return false;
+    if (filters.privacy === 'unknown' && g.igIsPrivate !== null) return false;
+    if (filters.search) {
+      const q = filters.search.toLowerCase();
+      const haystack = [g.name, g.email, g.instagram, g.company, g.referredBy, g.notes].join(' ').toLowerCase();
+      if (!haystack.includes(q)) return false;
+    }
+    return true;
+  });
+}
+
+function sortRows(list) {
+  return [...list].sort((a, b) => {
+    let av, bv;
+    if (sortKey === 'privacy') {
+      // Map to numeric: private=2, public=1, unknown=0
+      av = a.igIsPrivate === true ? 2 : a.igIsPrivate === false ? 1 : 0;
+      bv = b.igIsPrivate === true ? 2 : b.igIsPrivate === false ? 1 : 0;
+    } else {
+      av = a[sortKey]; bv = b[sortKey];
+      if (av === null || av === undefined || av === '') av = sortDir === 'asc' ? Infinity : -Infinity;
+      if (bv === null || bv === undefined || bv === '') bv = sortDir === 'asc' ? Infinity : -Infinity;
+      if (typeof av === 'string') av = av.toLowerCase();
+      if (typeof bv === 'string') bv = bv.toLowerCase();
+    }
+    if (av < bv) return sortDir === 'asc' ? -1 : 1;
+    if (av > bv) return sortDir === 'asc' ? 1 : -1;
+    return 0;
+  });
+}
+
+function updateSortIndicators() {
+  document.querySelectorAll('th.sortable').forEach(th => {
+    th.classList.remove('sorted');
+    const arrow = th.querySelector('.sort-arrow');
+    if (th.dataset.sort === sortKey) {
+      th.classList.add('sorted');
+      if (arrow) arrow.textContent = sortDir === 'asc' ? '▴' : '▾';
+    } else if (arrow) arrow.textContent = '▾';
+  });
+}
+
+// ============== SELECTION / BULK ==============
+function toggleRowSelection(id) {
+  if (selectedIds.has(id)) selectedIds.delete(id); else selectedIds.add(id);
+  render();
+}
+
+function updateBulkBar() {
+  const bar = document.getElementById('bulkBar');
+  // Only count guests that are BOTH selected AND visible under current filters.
+  // Otherwise stale selections from a prior filter state inflate the count
+  // and (worse) sneak into bulk sends.
+  const visibleIds = new Set(applyFilters(allGuests).map(g => g.id));
+  let count = 0;
+  for (const id of selectedIds) {
+    if (visibleIds.has(id)) count++;
+  }
+  if (count === 0) { bar.classList.add('hidden'); return; }
+  bar.classList.remove('hidden');
+  document.getElementById('bulkCount').textContent = `${count} selected`;
+}
+
+function selectAllVisible() {
+  const visible = applyFilters(allGuests).map(g => g.id);
+  const allSelected = visible.every(id => selectedIds.has(id));
+  if (allSelected) {
+    visible.forEach(id => selectedIds.delete(id));
+  } else {
+    visible.forEach(id => selectedIds.add(id));
+  }
+  render();
+}
+
+// ============== EVENT BINDING ==============
+function bindEvents() {
+  document.getElementById('searchInput').addEventListener('input', e => {
+    filters.search = e.target.value.trim();
+    render();
+  });
+  document.getElementById('statusFilter').addEventListener('change', e => {
+    filters.status = e.target.value;
+    render();
+  });
+  document.getElementById('inviteFilter').addEventListener('change', e => {
+    filters.invite = e.target.value;
+    render();
+  });
+  // Clickable stat cards — apply the corresponding invite or check-in filter
+  document.querySelectorAll('.stat-clickable').forEach(card => {
+    card.addEventListener('click', () => {
+      if (card.dataset.filterCheckin) {
+        filters.checkin = card.dataset.filterCheckin;
+        const sel = document.getElementById('checkinFilter');
+        if (sel) sel.value = filters.checkin;
+      } else {
+        const f = card.dataset.filterInvite;
+        filters.invite = f;
+        document.getElementById('inviteFilter').value = f;
+      }
+      render();
+      // Scroll the table into view on mobile
+      document.querySelector('.bulk-bar')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  });
+  document.getElementById('tagFilter').addEventListener('change', e => {
+    filters.tag = e.target.value;
+    render();
+  });
+  document.getElementById('importanceFilter').addEventListener('change', e => {
+    filters.importance = e.target.value;
+    render();
+  });
+  document.getElementById('checkinFilter').addEventListener('change', e => {
+    filters.checkin = e.target.value;
+    render();
+  });
+  // Select-N quick action — selects the first N visible guests that aren't
+  // already selected. Re-clicking the same N tops up to N total.
+  document.querySelectorAll('[data-select-n]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const n = parseInt(btn.dataset.selectN) || 0;
+      if (n <= 0) return;
+      const visible = applyFilters(allGuests);
+      // Sort the same way the table is currently displayed
+      const sorted = sortRows(visible);
+      let needed = n;
+      // First count how many of the first N are already selected — if all already
+      // selected, treat click as "select next N" instead of "select first N"
+      const firstN = sorted.slice(0, n).map(g => g.id);
+      const alreadyAll = firstN.length === n && firstN.every(id => selectedIds.has(id));
+      if (alreadyAll) {
+        // Top-up: pick the next N unselected after the first N
+        const remaining = sorted.slice(n).filter(g => !selectedIds.has(g.id));
+        remaining.slice(0, n).forEach(g => selectedIds.add(g.id));
+      } else {
+        firstN.forEach(id => selectedIds.add(id));
+      }
+      render();
+      showToast(`Selected ${Math.min(n, sorted.length)} (${selectedIds.size} total)`, 'success');
+    });
+  });
+  document.getElementById('minFollowers').addEventListener('input', e => {
+    filters.minFollowers = parseInt(e.target.value) || 0;
+    render();
+  });
+  document.getElementById('privacyFilter').addEventListener('change', e => {
+    filters.privacy = e.target.value;
+    render();
+  });
+  document.getElementById('sortPreset').addEventListener('change', e => {
+    const [key, dir] = e.target.value.split(':');
+    sortKey = key; sortDir = dir;
+    render();
+  });
+  document.getElementById('resetFiltersBtn').addEventListener('click', () => {
+    filters = { search: '', status: '', invite: '', tag: '', importance: '', checkin: '', minFollowers: 0, privacy: '' };
+    sortKey = 'createdTime'; sortDir = 'desc';
+    document.getElementById('searchInput').value = '';
+    document.getElementById('statusFilter').value = '';
+    document.getElementById('inviteFilter').value = '';
+    document.getElementById('tagFilter').value = '';
+    document.getElementById('importanceFilter').value = '';
+    const _cf = document.getElementById('checkinFilter'); if (_cf) _cf.value = '';
+    document.getElementById('minFollowers').value = '';
+    document.getElementById('privacyFilter').value = '';
+    document.getElementById('sortPreset').value = 'createdTime:desc';
+    render();
+  });
+  document.getElementById('reloadBtn').addEventListener('click', loadGuests);
+  bindAListModal();
+
+  // CSV export — respects current filters
+  document.getElementById('exportCsvBtn').addEventListener('click', () => {
+    const rows = applyFilters(allGuests);
+    if (rows.length === 0) {
+      showToast('No guests match the current filters', 'error');
+      return;
+    }
+    const columns = [
+      { key: 'name', label: 'Full Name' },
+      { key: 'email', label: 'Email' },
+      { key: 'phone', label: 'Phone' },
+      { key: 'instagram', label: 'Instagram' },
+      { key: 'igFollowers', label: 'IG Followers' },
+      { key: 'igIsPrivate', label: 'IG Private', format: v => v === true ? 'yes' : v === false ? 'no' : '' },
+      { key: 'company', label: 'Company / Industry' },
+      { key: 'referredBy', label: 'Referred By' },
+      { key: 'status', label: 'RSVP Status' },
+      { key: 'messagingStatus', label: 'Messaging Status', format: v => v || 'Pending' },
+      { key: 'tags', label: 'Tags' },
+      { key: 'source', label: 'Source' },
+      { key: 'hasPaid', label: 'Paid', format: v => v ? 'yes' : 'no' },
+      { key: 'paidAt', label: 'Paid At', format: formatDate },
+      { key: 'qrSentAt', label: 'QR Sent At', format: formatDate },
+      { key: 'checkedIn', label: 'Checked In', format: v => v ? 'yes' : 'no' },
+      { key: 'checkedInAt', label: 'Checked In At', format: formatDate },
+      { key: 'checkInCount', label: 'Scan Count' },
+      { key: 'plusOneOfName', label: 'Plus One Of' },
+      { key: 'plusOneAllowance', label: 'Plus One Allowance' },
+      { key: 'plusOneCode', label: 'Plus One Code' },
+      { key: 'plusOneUsed', label: 'Plus One Used', format: v => v ? 'yes' : 'no' },
+      { key: 'importance', label: 'Importance' },
+      { key: 'notes', label: 'Internal Notes' },
+      { key: 'lastMessageSentAt', label: 'Last Message Sent', format: formatDate },
+      { key: 'createdTime', label: 'Submitted', format: formatDate },
+      { key: 'lastSendError', label: 'Last Send Error' }
+    ];
+    const stamp = new Date().toISOString().slice(0, 10);
+    exportToCsv(rows, columns, `chateau-guests-${stamp}.csv`);
+    showToast(`Exported ${rows.length} guest${rows.length !== 1 ? 's' : ''}`, 'success');
+  });
+
+  document.getElementById('refreshNewBtn').addEventListener('click', () => refreshScrape(true));
+  document.getElementById('refreshAllBtn').addEventListener('click', () => {
+    if (!confirm('Re-scrape ALL profiles? This overwrites existing follower/avatar data.')) return;
+    refreshScrape(false);
+  });
+
+  document.getElementById('selectAllCb').addEventListener('click', selectAllVisible);
+
+  document.querySelectorAll('th.sortable').forEach(th => {
+    th.addEventListener('click', () => {
+      const key = th.dataset.sort;
+      if (sortKey === key) sortDir = sortDir === 'asc' ? 'desc' : 'asc';
+      else { sortKey = key; sortDir = (key === 'igFollowers' || key === 'createdTime') ? 'desc' : 'asc'; }
+      const presetVal = `${sortKey}:${sortDir}`;
+      const sel = document.getElementById('sortPreset');
+      const opt = Array.from(sel.options).find(o => o.value === presetVal);
+      sel.value = opt ? presetVal : '';
+      render();
+    });
+  });
+
+  document.getElementById('bulkStatus').addEventListener('change', e => {
+    const status = e.target.value;
+    if (status) bulkUpdateStatus(status);
+    e.target.value = '';
+  });
+  document.getElementById('bulkImportance').addEventListener('change', e => {
+    const val = e.target.value;
+    e.target.value = '';
+    if (!val) return;
+    const importance = val === '__clear__' ? '' : val;
+    bulkUpdateImportance(importance);
+  });
+  document.getElementById('bulkListMessaging').addEventListener('click', bulkListForMessaging);
+  document.getElementById('bulkConfirmSend').addEventListener('click', bulkConfirmAndSend);
+  document.getElementById('bulkWaitlistSend').addEventListener('click', bulkWaitlistAndSend);
+  document.getElementById('bulkConfirmQr').addEventListener('click', bulkConfirmAndSendQr);
+  document.getElementById('bulkDeselectBtn').addEventListener('click', () => {
+    selectedIds.clear();
+    render();
+  });
+}
+
+async function bulkListForMessaging() {
+  const visibleIds = new Set(applyFilters(allGuests).map(g => g.id));
+  const ids = Array.from(selectedIds).filter(id => visibleIds.has(id));
+  if (ids.length === 0) return;
+  const btn = document.getElementById('bulkListMessaging');
+
+  const ok = await runBulkSendModal({
+    title: 'Add ' + ids.length + ' guest' + (ids.length !== 1 ? 's' : '') + ' to Invites?',
+    body: '<p>These guests will be moved into the Invites tab as <strong>Listed</strong> (no email or SMS sent yet). Already-invited guests are skipped.</p>',
+    confirmLabel: 'Add ' + ids.length + ' to Invites',
+    totalCount: ids.length,
+    chunkSize: 50,
+    chunkDelayMs: 500,
+    ids: ids,
+    summaryKeys: [
+      { key: 'added',   label: 'added' }
+    ],
+    run: async function(slice) {
+      const res = await authFetch('/api/messaging/add', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ recordIds: slice })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'HTTP ' + res.status);
+      // /api/messaging/add returns skipped as a number, normalize to array for modal
+      if (typeof data.skipped === 'number') data.skipped = new Array(data.skipped).fill({});
+      return data;
+    }
+  });
+
+  if (ok) {
+    selectedIds.clear();
+    await loadGuests();
+  }
+}
+
+async function bulkConfirmAndSend() {
+  const visibleIds = new Set(applyFilters(allGuests).map(g => g.id));
+  const ids = Array.from(selectedIds).filter(id => visibleIds.has(id));
+  if (ids.length === 0) return;
+
+  const ok = await runBulkSendModal({
+    title: 'Confirm ' + ids.length + ' guest' + (ids.length !== 1 ? 's' : '') + '?',
+    body: '<p>Each selected guest will be set to <strong>Approved</strong> and receive:</p>'
+        + '<ul style="margin:8px 0 0;padding-left:18px;color:#4a4843"><li>Confirmation email</li><li>Confirmation SMS (if phone present)</li></ul>'
+        + '<div style="margin-top:12px;padding:10px 12px;background:rgba(184,150,90,0.10);border-left:3px solid #B8965A;font-size:12px;color:#6b5023">QR access email is <strong>not</strong> included — use "Confirm & send QR" for that.</div>',
+    confirmLabel: 'Send to ' + ids.length + ' guest' + (ids.length !== 1 ? 's' : ''),
+    totalCount: ids.length,
+    chunkSize: 20,
+    chunkDelayMs: 2000,
+    ids: ids,
+    summaryKeys: [
+      { key: 'confirmed', label: 'confirmed' },
+      { key: 'emailSent', label: 'emails sent' },
+      { key: 'smsSent',   label: 'SMS sent' }
+    ],
+    run: async function(slice) {
+      const res = await authFetch('/api/messaging/confirm', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ recordIds: slice })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'HTTP ' + res.status);
+      return data;
+    }
+  });
+
+  if (ok) {
+    selectedIds.clear();
+    await loadGuests();
+  }
+}
+
+async function bulkWaitlistAndSend() {
+  // Only act on guests that are BOTH selected AND currently visible (matching
+  // active filters). This prevents "ghost" selections from a previous filter
+  // state leaking into a batch send.
+  const visibleIds = new Set(applyFilters(allGuests).map(g => g.id));
+  let ids = Array.from(selectedIds).filter(id => visibleIds.has(id));
+  if (ids.length === 0) return;
+
+  // SAFETY: split selection into safe (Pending/Listed/Semi/Waitlist) and
+  // dangerous (Approved/Declined/QR-sent/Checked-in) groups.
+  // The dangerous ones are auto-excluded — server enforces this too, but
+  // surfacing it in the UI prevents the user from being surprised.
+  const safe = [];
+  const skipped = [];
+  for (const id of ids) {
+    const g = allGuests.find(x => x.id === id);
+    if (!g) { skipped.push({ id: id, reason: 'unknown' }); continue; }
+    if (g.messagingStatus === 'Approved')         { skipped.push({ id: id, name: g.name, reason: 'Approved' }); continue; }
+    if (g.messagingStatus === 'Declined')         { skipped.push({ id: id, name: g.name, reason: 'Declined' }); continue; }
+    if (g.qrSentAt)                               { skipped.push({ id: id, name: g.name, reason: 'QR sent' }); continue; }
+    if (g.checkedIn)                              { skipped.push({ id: id, name: g.name, reason: 'Checked in' }); continue; }
+    safe.push(id);
+  }
+
+  if (safe.length === 0) {
+    showToast('All ' + ids.length + ' selected guests are already Approved / Declined / Checked-in — nothing to send.', 'error');
+    return;
+  }
+
+  // Build the modal body. If we filtered some out, show a yellow warning so
+  // the user knows exactly what's going to happen.
+  let bodyHtml = '<p>Each selected guest will be set to <strong>Waitlist</strong> and receive:</p>'
+              + '<ul style="margin:8px 0 12px;padding-left:18px;color:#4a4843"><li>Waitlist email</li><li>Waitlist SMS (if phone present)</li></ul>';
+
+  if (skipped.length > 0) {
+    const sampleNames = skipped.slice(0, 5).map(s => escapeHtml(s.name || 'unknown') + ' (' + s.reason + ')').join(', ');
+    const more = skipped.length > 5 ? ' …and ' + (skipped.length - 5) + ' more' : '';
+    bodyHtml += '<div style="padding:10px 12px;background:rgba(212,167,68,0.12);border-left:3px solid #D4A744;font-size:12px;color:#7a5a14;line-height:1.5">'
+             + '<strong>' + skipped.length + ' guest' + (skipped.length !== 1 ? 's' : '') + ' will be skipped</strong> — they are already Approved, Declined, QR-sent or Checked-in:<br>'
+             + '<span style="color:#5a4310">' + sampleNames + more + '</span>'
+             + '</div>';
+  }
+
+  const ok = await runBulkSendModal({
+    title: 'Set ' + safe.length + ' guest' + (safe.length !== 1 ? 's' : '') + ' to Waitlist?',
+    body: bodyHtml,
+    confirmLabel: 'Send Waitlist to ' + safe.length,
+    totalCount: safe.length,
+    chunkSize: 20,
+    chunkDelayMs: 2000,
+    ids: safe,
+    summaryKeys: [
+      { key: 'waitlisted', label: 'waitlisted' },
+      { key: 'emailSent',  label: 'emails sent' },
+      { key: 'smsSent',    label: 'SMS sent' }
+    ],
+    run: async function(slice) {
+      const res = await authFetch('/api/messaging/waitlist', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ recordIds: slice })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'HTTP ' + res.status);
+      return data;
+    }
+  });
+
+  if (ok) {
+    selectedIds.clear();
+    await loadGuests();
+  }
+}
+
+async function bulkConfirmAndSendQr() {
+  const visibleIds = new Set(applyFilters(allGuests).map(g => g.id));
+  const ids = Array.from(selectedIds).filter(id => visibleIds.has(id));
+  if (ids.length === 0) return;
+
+  const ok = await runBulkSendModal({
+    title: 'Confirm + send QR to ' + ids.length + ' guest' + (ids.length !== 1 ? 's' : '') + '?',
+    body: '<p>Each selected guest will be set to <strong>Approved</strong> and receive:</p>'
+        + '<ul style="margin:8px 0 0;padding-left:18px;color:#4a4843"><li>Confirmation email</li><li>Confirmation SMS (if phone present)</li><li>QR access email (with event details)</li></ul>',
+    confirmLabel: 'Send to ' + ids.length + ' guest' + (ids.length !== 1 ? 's' : ''),
+    totalCount: ids.length,
+    chunkSize: 20,
+    chunkDelayMs: 2000,
+    ids: ids,
+    summaryKeys: [
+      { key: 'confirmed',   label: 'confirmed' },
+      { key: 'emailSent',   label: 'confirmation emails' },
+      { key: 'smsSent',     label: 'SMS' },
+      { key: 'qrEmailSent', label: 'QR emails' }
+    ],
+    run: async function(slice) {
+      const res = await authFetch('/api/messaging/confirm', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ recordIds: slice, sendQr: true })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'HTTP ' + res.status);
+      return data;
+    }
+  });
+
+  if (ok) {
+    selectedIds.clear();
+    await loadGuests();
+  }
+}
+
+function bindRowEvents() {
+  document.querySelectorAll('.row-checkbox').forEach(cb => {
+    cb.addEventListener('click', e => {
+      e.stopPropagation();
+      toggleRowSelection(cb.dataset.id);
+    });
+  });
+  document.querySelectorAll('[data-action]').forEach(el => {
+    el.addEventListener('click', e => {
+      e.stopPropagation();
+      const action = el.dataset.action;
+      const id = el.dataset.id;
+      if (action === 'status') openStatusMenu(el, id);
+      if (action === 'edit-ig') openIgEditor(el);
+      if (action === 'edit-notes') openNotesEditor(el);
+      if (action === 'refresh-one') refreshOne(id, el);
+      if (action === 'confirm') confirmOne(id, el);
+      if (action === 'waitlist') waitlistOne(id, el);
+      if (action === 'resend') resendOne(id, el);
+      if (action === 'reject') rejectOne(id, el);
+      if (action === 'list-one') listOne(id, el);
+    });
+  });
+
+  // Importance inline-edit dropdown
+  document.querySelectorAll('select.importance-select').forEach(sel => {
+    sel.addEventListener('click', e => e.stopPropagation());
+    sel.addEventListener('mousedown', e => e.stopPropagation());
+    sel.addEventListener('change', async e => {
+      e.stopPropagation();
+      const id = sel.dataset.id;
+      const newVal = sel.value;
+      const prev = sel.getAttribute('data-prev') || '';
+      sel.disabled = true;
+      try {
+        const res = await authFetch('/api/update-record', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ recordId: id, fields: { Importance: newVal || null } })
+        });
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          throw new Error(data.error || 'HTTP ' + res.status);
+        }
+        const g = allGuests.find(x => x.id === id);
+        if (g) g.importance = newVal;
+        sel.setAttribute('style', importanceCellStyle(newVal));
+        sel.setAttribute('data-prev', newVal);
+        showToast(newVal ? ('Importance: ' + newVal) : 'Importance cleared', 'success');
+        if (filters.importance) render();
+      } catch (err) {
+        showToast('Failed: ' + err.message, 'error');
+        sel.value = prev;
+      } finally {
+        sel.disabled = false;
+      }
+    });
+  });
+
+  // Mobile: tap on card body toggles selection (skip if click landed on interactive element)
+  document.getElementById('tbody').addEventListener('click', e => {
+    if (e.target.closest('button, a, input, select, [data-action], .checkbox')) return;
+    if (window.innerWidth > 700) return;
+    const tr = e.target.closest('tr[data-id]');
+    if (!tr) return;
+    const id = tr.dataset.id;
+    if (selectedIds.has(id)) selectedIds.delete(id);
+    else selectedIds.add(id);
+    render();
+  });
+}
+
+// ============== INVITE-STAGE ACTIONS ==============
+function setBtnLoading(btn) {
+  if (!btn) return;
+  btn.dataset._origHTML = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>';
+}
+function restoreBtn(btn) {
+  if (!btn) return;
+  if (btn.dataset._origHTML) btn.innerHTML = btn.dataset._origHTML;
+  btn.disabled = false;
+}
+
+async function confirmOne(id, btn) {
+  setBtnLoading(btn);
+  try {
+    const res = await authFetch('/api/messaging/confirm', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ recordIds: [id] })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed');
+    const parts = [];
+    if (data.confirmed > 0) parts.push(data.confirmed + ' confirmed');
+    if (data.emailSent > 0) parts.push(data.emailSent + ' email');
+    if (data.smsSent > 0) parts.push(data.smsSent + ' SMS');
+    showToast(parts.join(' · ') || 'Done', data.failed && data.failed.length > 0 ? 'error' : 'success');
+    await loadGuests();
+  } catch (err) {
+    showToast('Confirm failed: ' + err.message, 'error');
+    restoreBtn(btn);
+  }
+}
+
+async function waitlistOne(id, btn) {
+  setBtnLoading(btn);
+  try {
+    const res = await authFetch('/api/messaging/waitlist', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ recordIds: [id] })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed');
+    const parts = [];
+    if (data.waitlisted > 0) parts.push(data.waitlisted + ' waitlisted');
+    if (data.emailSent > 0) parts.push(data.emailSent + ' email');
+    if (data.smsSent > 0) parts.push(data.smsSent + ' SMS');
+    showToast(parts.join(' · ') || 'Done', data.failed && data.failed.length > 0 ? 'error' : 'success');
+    await loadGuests();
+  } catch (err) {
+    showToast('Waitlist failed: ' + err.message, 'error');
+    restoreBtn(btn);
+  }
+}
+
+async function resendOne(id, btn) {
+  setBtnLoading(btn);
+  try {
+    const res = await authFetch('/api/messaging/send', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ recordIds: [id] })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed');
+    const parts = [];
+    if (data.sent > 0) parts.push(data.sent + ' sent');
+    if (data.emailSent > 0) parts.push(data.emailSent + ' email');
+    if (data.smsSent > 0) parts.push(data.smsSent + ' SMS');
+    showToast(parts.join(' · ') || 'Done', data.failed && data.failed.length > 0 ? 'error' : 'success');
+    await loadGuests();
+  } catch (err) {
+    showToast('Resend failed: ' + err.message, 'error');
+    restoreBtn(btn);
+  }
+}
+
+async function listOne(id, btn) {
+  setBtnLoading(btn);
+  try {
+    const res = await authFetch('/api/messaging/add', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ recordIds: [id] })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed');
+    if (data.added > 0) showToast('Added to invites', 'success');
+    else showToast('Already in invites', 'warning');
+    await loadGuests();
+  } catch (err) {
+    showToast('Failed to list: ' + err.message, 'error');
+    restoreBtn(btn);
+  }
+}
+
+async function rejectOne(id, btn) {
+  const guest = allGuests.find(g => g.id === id);
+  const displayName = guest && guest.name ? guest.name : 'this guest';
+  const currentStatus = guest ? (guest.messagingStatus || '') : '';
+
+  const ok = await showRejectModal({ name: displayName, status: currentStatus });
+  if (!ok) return;
+
+  setBtnLoading(btn);
+  try {
+    const res = await authFetch('/api/messaging/reject', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ recordIds: [id] })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed');
+    const parts = [];
+    if (data.rejected > 0) parts.push(data.rejected + ' rejected');
+    if (data.emailSent > 0) parts.push(data.emailSent + ' email');
+    if (data.smsSent > 0) parts.push(data.smsSent + ' SMS');
+    if (data.skipped && data.skipped.length > 0) parts.push(data.skipped.length + ' skipped');
+    if (data.failed && data.failed.length > 0) parts.push(data.failed.length + ' failed');
+    showToast(parts.join(' · ') || 'Done', data.failed && data.failed.length > 0 ? 'error' : 'success');
+    await loadGuests();
+  } catch (err) {
+    showToast('Reject failed: ' + err.message, 'error');
+    restoreBtn(btn);
+  }
+}
+
+// ============== A-LIST MANUAL ENTRY ==============
+function bindAListModal() {
+  const modal = document.getElementById('alistModal');
+  const openBtn = document.getElementById('btnAddAList');
+  const closeBtn = document.getElementById('alistCloseBtn');
+  const cancelBtn = document.getElementById('alistCancelBtn');
+  const saveBtn = document.getElementById('alistSaveBtn');
+  const tabSingle = document.getElementById('alistTabSingle');
+  const tabBatch = document.getElementById('alistTabBatch');
+  const paneSingle = document.getElementById('alistPaneSingle');
+  const paneBatch = document.getElementById('alistPaneBatch');
+  const batchTa = document.getElementById('alistBatch');
+  const batchCount = document.getElementById('alistBatchCount');
+  const status = document.getElementById('alistStatus');
+  if (!openBtn) return;
+
+  let currentTab = 'single';
+
+  function switchTab(tab) {
+    currentTab = tab;
+    if (tab === 'single') {
+      tabSingle.style.background = '#fff';
+      tabSingle.style.borderBottomColor = 'var(--ink)';
+      tabSingle.style.color = 'var(--ink)';
+      tabSingle.style.fontWeight = '500';
+      tabBatch.style.background = 'transparent';
+      tabBatch.style.borderBottomColor = 'transparent';
+      tabBatch.style.color = 'var(--ink-soft)';
+      tabBatch.style.fontWeight = '400';
+      paneSingle.style.display = '';
+      paneBatch.style.display = 'none';
+      saveBtn.textContent = 'Add to A-List';
+    } else {
+      tabBatch.style.background = '#fff';
+      tabBatch.style.borderBottomColor = 'var(--ink)';
+      tabBatch.style.color = 'var(--ink)';
+      tabBatch.style.fontWeight = '500';
+      tabSingle.style.background = 'transparent';
+      tabSingle.style.borderBottomColor = 'transparent';
+      tabSingle.style.color = 'var(--ink-soft)';
+      tabSingle.style.fontWeight = '400';
+      paneSingle.style.display = 'none';
+      paneBatch.style.display = '';
+      updateBatchCount();
+    }
+    status.textContent = '';
+  }
+
+  function parseBatch(text) {
+    const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+    const parsed = [];
+    const errors = [];
+    const validAllowance = new Set(['0','1','2','3','unlimited']);
+    lines.forEach((line, idx) => {
+      const parts = line.split(/[,;\t]/).map(p => p.trim()).filter(p => p.length > 0);
+      if (parts.length === 0) return;
+      const name = parts[0];
+      if (!name || name.length < 2) {
+        errors.push('Line ' + (idx + 1) + ': name too short');
+        return;
+      }
+      // Normalize allowance: "open" → "unlimited", missing → "0"
+      let raw = (parts[1] || '0').toLowerCase();
+      if (raw === 'open' || raw === '*' || raw === 'all') raw = 'unlimited';
+      if (!validAllowance.has(raw)) {
+        errors.push('Line ' + (idx + 1) + ': invalid allowance "' + raw + '" (must be 0, 1, 2, 3, or open)');
+        return;
+      }
+      parsed.push({ name, allowance: raw });
+    });
+    return { parsed, errors };
+  }
+
+  function updateBatchCount() {
+    const { parsed, errors } = parseBatch(batchTa.value);
+    if (parsed.length === 0 && errors.length === 0) {
+      batchCount.textContent = '0 entries';
+      batchCount.style.color = 'var(--ink-faint)';
+    } else if (errors.length > 0) {
+      batchCount.textContent = parsed.length + ' valid · ' + errors.length + ' error' + (errors.length > 1 ? 's' : '');
+      batchCount.style.color = '#c47466';
+    } else {
+      batchCount.textContent = parsed.length + ' entr' + (parsed.length === 1 ? 'y' : 'ies') + ' ready';
+      batchCount.style.color = '#3a8a4a';
+    }
+  }
+
+  batchTa.addEventListener('input', updateBatchCount);
+
+  // Allowance card selection (single-tab radio cards)
+  document.querySelectorAll('#alistAllowanceGroup .allowance-opt').forEach(card => {
+    card.addEventListener('click', () => {
+      document.querySelectorAll('#alistAllowanceGroup .allowance-opt').forEach(c => c.classList.remove('selected'));
+      card.classList.add('selected');
+      const radio = card.querySelector('input[type="radio"]');
+      if (radio) radio.checked = true;
+    });
+  });
+
+  function getSelectedAllowance() {
+    const checked = document.querySelector('#alistAllowanceGroup input[name="alistAllowance"]:checked');
+    return checked ? checked.value : '0';
+  }
+
+  function resetAllowanceCards() {
+    document.querySelectorAll('#alistAllowanceGroup .allowance-opt').forEach(c => c.classList.remove('selected'));
+    const first = document.querySelector('#alistAllowanceGroup .allowance-opt[data-val="0"]');
+    if (first) first.classList.add('selected');
+    const radio0 = document.querySelector('#alistAllowanceGroup input[value="0"]');
+    if (radio0) radio0.checked = true;
+  }
+
+  function open() {
+    document.getElementById('alistName').value = '';
+    batchTa.value = '';
+    resetAllowanceCards();
+    switchTab('single');
+    modal.style.display = 'flex';
+    setTimeout(() => document.getElementById('alistName').focus(), 50);
+  }
+  function close() { modal.style.display = 'none'; }
+
+  tabSingle.addEventListener('click', () => switchTab('single'));
+  tabBatch.addEventListener('click', () => switchTab('batch'));
+  openBtn.addEventListener('click', open);
+  closeBtn.addEventListener('click', close);
+  cancelBtn.addEventListener('click', close);
+  modal.addEventListener('click', e => { if (e.target === modal) close(); });
+
+  async function addOne(person) {
+    const res = await authFetch('/api/guests/add-alist', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: person.name,
+        allowance: person.allowance || '0'
+      })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed');
+    return data;
+  }
+
+  saveBtn.addEventListener('click', async () => {
+    if (currentTab === 'single') {
+      const name = document.getElementById('alistName').value.trim();
+      const allowance = getSelectedAllowance();
+
+      if (!name) return showToast('Name required', 'error');
+
+      saveBtn.disabled = true;
+      saveBtn.textContent = 'Adding…';
+      try {
+        await addOne({ name, allowance });
+        const suffix = allowance === '0' ? '' : (allowance === 'unlimited' ? ' (open)' : ' +' + allowance);
+        showToast('Added "' + name + suffix + '" to A-List', 'success');
+        close();
+        await loadGuests();
+      } catch (err) {
+        showToast('Failed: ' + err.message, 'error');
+      } finally {
+        saveBtn.disabled = false;
+        saveBtn.textContent = 'Add to A-List';
+      }
+    } else {
+      // BATCH MODE
+      const { parsed, errors } = parseBatch(batchTa.value);
+      if (parsed.length === 0) {
+        return showToast(errors.length > 0 ? 'Fix errors first' : 'Paste at least one entry', 'error');
+      }
+      if (errors.length > 0) {
+        if (!confirm(errors.length + ' line(s) have errors and will be skipped:\n\n' + errors.slice(0, 5).join('\n') + (errors.length > 5 ? '\n…' : '') + '\n\nProceed with ' + parsed.length + ' valid entries?')) return;
+      }
+
+      saveBtn.disabled = true;
+      let succeeded = 0;
+      const failed = [];
+
+      for (let i = 0; i < parsed.length; i++) {
+        const p = parsed[i];
+        saveBtn.textContent = 'Adding ' + (i + 1) + '/' + parsed.length + '…';
+        status.textContent = p.name + (p.allowance !== '0' ? ' +' + p.allowance : '');
+        try {
+          await addOne(p);
+          succeeded++;
+        } catch (err) {
+          failed.push({ name: p.name, error: err.message });
+        }
+      }
+
+      saveBtn.disabled = false;
+      saveBtn.textContent = 'Add to A-List';
+      status.textContent = '';
+
+      const msg = succeeded + ' added' + (failed.length > 0 ? ' · ' + failed.length + ' failed' : '');
+      showToast(msg, failed.length === 0 ? 'success' : 'error');
+      if (failed.length > 0) {
+        console.error('A-List batch failures:', failed);
+        // Surface the actual first error so it can be diagnosed
+        const firstErr = failed[0];
+        if (firstErr) {
+          const detailMsg = 'First failure (' + firstErr.name + '): ' + firstErr.error;
+          // Show a second longer toast with detail
+          setTimeout(() => showToast(detailMsg, 'error'), 600);
+        }
+      }
+      if (succeeded > 0) {
+        close();
+        await loadGuests();
+      }
+    }
+  });
+}
+
+// ============== STATUS MENU ==============
+function openStatusMenu(anchor, recordId) {
+  const menu = document.getElementById('statusMenu');
+  const rect = anchor.getBoundingClientRect();
+  menu.innerHTML = STATUS_OPTIONS.map(s =>
+    `<div class="menu-item" data-status="${escapeAttr(s)}"><span class="pill ${STATUS_PILL[s]||'pill-default'}" style="pointer-events:none">${escapeHtml(STATUS_LABEL[s]||s)}</span></div>`
+  ).join('') + '<div class="menu-divider"></div>' +
+    `<div class="menu-item danger" data-status=""><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>Clear status</div>`;
+  menu.style.top = (rect.bottom + window.scrollY + 4) + 'px';
+  menu.style.left = (rect.left + window.scrollX) + 'px';
+  menu.classList.add('open');
+
+  // Close on outside click
+  setTimeout(() => {
+    document.addEventListener('click', closeMenuOnce, { once: true });
+  }, 0);
+
+  // Bind item clicks
+  menu.querySelectorAll('.menu-item').forEach(item => {
+    item.addEventListener('click', async e => {
+      e.stopPropagation();
+      const newStatus = item.dataset.status;
+      menu.classList.remove('open');
+      await updateRecordField(recordId, 'Status', newStatus || null);
+    });
+  });
+}
+function closeMenuOnce() {
+  document.getElementById('statusMenu').classList.remove('open');
+}
+
+// ============== INLINE EDITORS ==============
+function openIgEditor(btn) {
+  const recordId = btn.dataset.id;
+  const handle = btn.dataset.handle || '';
+  const cell = btn.closest('.ig-cell');
+  if (!cell) return;
+  cell.innerHTML = `
+    <div class="inline-editor">
+      <span class="muted">@</span>
+      <input type="text" value="${escapeAttr(handle)}" placeholder="username" maxlength="30">
+      <button class="inline-editor-btn save" title="Save"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></button>
+      <button class="inline-editor-btn cancel" title="Cancel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+  `;
+  const input = cell.querySelector('input');
+  const saveBtn = cell.querySelector('.save');
+  const cancelBtn = cell.querySelector('.cancel');
+  input.focus(); input.select();
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Enter') { e.preventDefault(); saveIg(recordId, input, saveBtn, cancelBtn); }
+    if (e.key === 'Escape') { e.preventDefault(); render(); }
+  });
+  saveBtn.addEventListener('click', () => saveIg(recordId, input, saveBtn, cancelBtn));
+  cancelBtn.addEventListener('click', () => render());
+}
+
+async function saveIg(recordId, input, saveBtn, cancelBtn) {
+  const cleaned = input.value.trim()
+    .replace(/^@/, '')
+    .replace(/^https?:\/\/(www\.)?instagram\.com\//i, '')
+    .replace(/\/.*$/, '')
+    .replace(/\?.*$/, '');
+  if (cleaned.length < 1) { showToast('Handle cannot be empty', 'error'); return; }
+
+  saveBtn.disabled = true; cancelBtn.disabled = true; input.disabled = true;
+  saveBtn.innerHTML = '<span class="spinner" style="width:11px;height:11px;border-width:1.5px"></span>';
+  try {
+    const res = await authFetch('/api/update-record', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ recordId, fields: { Instagram: cleaned } })
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(()=>({}));
+      throw new Error(err.error || 'Save failed');
+    }
+    showToast('Handle updated, fetching IG data…', 'success');
+    // Trigger Apify refresh for this record
+    const r = await authFetch('/api/refresh', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ recordIds: [recordId] })
+    });
+    const rd = await r.json();
+    if (r.ok && rd.updated > 0) showToast('Profile fetched', 'success');
+    else if (r.ok) showToast('Handle saved, but IG profile not found', 'warning');
+    await loadGuests();
+  } catch (err) {
+    showToast(err.message, 'error');
+    render();
+  }
+}
+
+function openNotesEditor(btn) {
+  const recordId = btn.dataset.id;
+  const notes = btn.dataset.notes || '';
+  const cell = btn.closest('.ig-cell');
+  if (!cell) return;
+  cell.innerHTML = `
+    <div class="inline-editor">
+      <textarea placeholder="Internal notes…">${escapeHtml(notes)}</textarea>
+      <button class="inline-editor-btn save" title="Save"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></button>
+      <button class="inline-editor-btn cancel" title="Cancel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+  `;
+  const ta = cell.querySelector('textarea');
+  const saveBtn = cell.querySelector('.save');
+  const cancelBtn = cell.querySelector('.cancel');
+  ta.focus();
+  ta.addEventListener('keydown', e => {
+    if ((e.key === 'Enter' && (e.metaKey || e.ctrlKey))) { e.preventDefault(); saveNotes(recordId, ta, saveBtn, cancelBtn); }
+    if (e.key === 'Escape') { e.preventDefault(); render(); }
+  });
+  saveBtn.addEventListener('click', () => saveNotes(recordId, ta, saveBtn, cancelBtn));
+  cancelBtn.addEventListener('click', () => render());
+}
+
+async function saveNotes(recordId, ta, saveBtn, cancelBtn) {
+  saveBtn.disabled = true; cancelBtn.disabled = true; ta.disabled = true;
+  saveBtn.innerHTML = '<span class="spinner" style="width:11px;height:11px;border-width:1.5px"></span>';
+  try {
+    const res = await authFetch('/api/update-record', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ recordId, fields: { 'Internal Notes': ta.value } })
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(()=>({}));
+      throw new Error(err.error || 'Save failed');
+    }
+    showToast('Notes saved', 'success');
+    await loadGuests();
+  } catch (err) {
+    showToast(err.message, 'error');
+    render();
+  }
+}
+
+// ============== STATUS UPDATE ==============
+async function updateRecordField(recordId, fieldName, value) {
+  const fields = { [fieldName]: value };
+  try {
+    const res = await authFetch('/api/update-record', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ recordId, fields })
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(()=>({}));
+      throw new Error(err.error || 'Update failed');
+    }
+    showToast(`Status updated to ${value || '—'}`, 'success');
+    // optimistic local update
+    const guest = allGuests.find(g => g.id === recordId);
+    if (guest) guest[fieldName.toLowerCase()] = value;
+    renderStats();
+    render();
+    // Also fire-and-forget reload from server to be safe
+    setTimeout(loadGuests, 1000);
+  } catch (err) {
+    showToast(err.message, 'error');
+  }
+}
+
+// ============== BULK STATUS ==============
+async function bulkUpdateStatus(status) {
+  if (selectedIds.size === 0) return;
+  const ids = [...selectedIds];
+  showToast(`Updating ${ids.length} guests…`, '');
+  try {
+    const res = await authFetch('/api/update-bulk', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ recordIds: ids, fields: { Status: status } })
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(()=>({}));
+      throw new Error(err.error || 'Bulk update failed');
+    }
+    const data = await res.json();
+    showToast(`${data.updated} guests updated to ${status}`, 'success');
+    selectedIds.clear();
+    await loadGuests();
+  } catch (err) {
+    showToast(err.message, 'error');
+  }
+}
+
+async function bulkUpdateImportance(importance) {
+  // Only act on visible-selected, matching the same safety pattern as send-bulks
+  const visibleIds = new Set(applyFilters(allGuests).map(g => g.id));
+  const ids = Array.from(selectedIds).filter(id => visibleIds.has(id));
+  if (ids.length === 0) return;
+  const label = importance || 'cleared';
+  showToast(`Updating ${ids.length} guests…`, '');
+  try {
+    const res = await authFetch('/api/update-bulk', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ recordIds: ids, fields: { Importance: importance || null } })
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(()=>({}));
+      throw new Error(err.error || 'Bulk update failed');
+    }
+    const data = await res.json();
+    // Update local state so re-render works without full reload
+    for (const id of ids) {
+      const g = allGuests.find(x => x.id === id);
+      if (g) g.importance = importance;
+    }
+    render();
+    showToast(`${data.updated} guests → Importance ${label}`, 'success');
+  } catch (err) {
+    showToast(err.message, 'error');
+  }
+}
+
+// ============== APIFY REFRESH ==============
+async function refreshScrape(onlyMissing) {
+  const newBtn = document.getElementById('refreshNewBtn');
+  const allBtn = document.getElementById('refreshAllBtn');
+  const newLbl = document.getElementById('refreshNewLabel');
+  const allLbl = document.getElementById('refreshAllLabel');
+  newBtn.disabled = true;
+  allBtn.disabled = true;
+  if (onlyMissing) {
+    newLbl.innerHTML = '<span class="spinner"></span>&nbsp;Scraping new…';
+  } else {
+    allLbl.innerHTML = '<span class="spinner"></span>&nbsp;All…';
+  }
+  try {
+    const res = await authFetch('/api/refresh', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ onlyMissing })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Refresh failed');
+    if (data.targets === 0) {
+      showToast(onlyMissing ? 'All profiles already scraped' : 'No profiles to scrape', 'success');
+    } else {
+      showToast('Scraped ' + data.updated + ' of ' + data.targets + ' profile' + (data.targets !== 1 ? 's' : ''), 'success');
+    }
+    await loadGuests();
+  } catch (err) {
+    showToast(err.message, 'error');
+  } finally {
+    newBtn.disabled = false;
+    allBtn.disabled = false;
+    newLbl.textContent = 'Scrape new';
+    allLbl.textContent = 'All';
+  }
+}
+
+async function refreshOne(recordId, btn) {
+  if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>'; }
+  try {
+    const res = await authFetch('/api/refresh', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ recordIds: [recordId] })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Refresh failed');
+    if (data.updated > 0) showToast('Profile refreshed', 'success');
+    else showToast('No data found for this profile', 'warning');
+    await loadGuests();
+  } catch (err) {
+    showToast(err.message, 'error');
+    if (btn) { btn.disabled = false; btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 4v5h-5"/></svg>'; }
+  }
+}
+</script>
+</body>
+</html>
