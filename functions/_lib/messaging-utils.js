@@ -89,6 +89,42 @@ export async function airtableCreate(env, fields) {
   return await res.json();
 }
 
+// Find a guest by their short URL code. Looks in both 'Decline Code' and
+// 'Plus One Code' fields. Returns the record (with .id and .fields) or null
+// if no match. Used by the /r/[code] short-URL handler.
+export async function airtableGetByCode(env, code) {
+  if (!code || typeof code !== 'string') return null;
+  // Escape any single quotes to prevent breaking the formula
+  const safe = code.replace(/'/g, "\\'");
+  const formula = `OR({Decline Code} = '${safe}', {Plus One Code} = '${safe}')`;
+  const url = new URL(`https://api.airtable.com/v0/${env.AIRTABLE_BASE_ID}/${env.AIRTABLE_TABLE_NAME}`);
+  url.searchParams.set('filterByFormula', formula);
+  url.searchParams.set('maxRecords', '1');
+
+  const res = await fetch(url.toString(), {
+    headers: { Authorization: `Bearer ${env.AIRTABLE_TOKEN}` }
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Airtable lookup ${res.status}: ${text.substring(0, 200)}`);
+  }
+  const data = await res.json();
+  if (!Array.isArray(data.records) || data.records.length === 0) return null;
+  const rec = data.records[0];
+  const f = rec.fields || {};
+
+  // Determine which code matched so the [code].js handler knows which page to route to
+  let kind = '';
+  if (f['Decline Code'] === code) kind = 'decline';
+  else if (f['Plus One Code'] === code) kind = 'plus-one';
+
+  return {
+    id: rec.id,
+    fields: f,
+    kind
+  };
+}
+
 // Generate a 6-character random code (lowercase + digits, ~2 billion combinations)
 export function generateCode() {
   const chars = '0123456789abcdefghijklmnopqrstuvwxyz';

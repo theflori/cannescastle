@@ -22,24 +22,55 @@ import { airtableCreate, jsonError, jsonOk } from '../../_lib/messaging-utils.js
 
 const SOURCE_TAG = 'direct-paid';
 
+// Allowed origins for cross-origin form submission (Frontend page → Dashboard endpoint).
+// Add additional public sites here if you serve /buy from more places.
+const ALLOWED_ORIGINS = [
+  'https://chateau-cannes.fraimit.com',
+  'https://cannes-dash.pages.dev'
+];
+
+function corsHeaders(origin) {
+  const allow = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
+  return {
+    'Access-Control-Allow-Origin': allow,
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type',
+    'Access-Control-Max-Age': '86400',
+    'Vary': 'Origin'
+  };
+}
+
+export async function onRequestOptions(context) {
+  const origin = context.request.headers.get('Origin') || '';
+  return new Response(null, { status: 204, headers: corsHeaders(origin) });
+}
+
 function isValidEmail(s) {
   if (!s || typeof s !== 'string') return false;
   // Pragmatic check — actual validation happens in Stripe Checkout anyway
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s.trim());
 }
 
+// Wrap json helpers so we can add CORS headers to every response
+function withCors(response, origin) {
+  const headers = new Headers(response.headers);
+  for (const [k, v] of Object.entries(corsHeaders(origin))) headers.set(k, v);
+  return new Response(response.body, { status: response.status, headers });
+}
+
 export async function onRequestPost(context) {
   const { request, env } = context;
+  const origin = request.headers.get('Origin') || '';
 
   // Required env
   const required = ['STRIPE_SECRET_KEY', 'AIRTABLE_TOKEN', 'AIRTABLE_BASE_ID', 'AIRTABLE_TABLE_NAME', 'PUBLIC_SITE_URL'];
   for (const k of required) {
-    if (!env[k]) return jsonError('Server misconfigured: missing ' + k, 500);
+    if (!env[k]) return withCors(jsonError('Server misconfigured: missing ' + k, 500), origin);
   }
 
   let body;
   try { body = await request.json(); }
-  catch { return jsonError('Invalid JSON', 400); }
+  catch { return withCors(jsonError('Invalid JSON', 400), origin); }
 
   const name = (body.name || '').trim();
   const email = (body.email || '').trim().toLowerCase();
@@ -48,8 +79,8 @@ export async function onRequestPost(context) {
   const referredBy = (body.referredBy || '').trim();
 
   // Validation
-  if (!name || name.length < 2) return jsonError('Please enter your name', 400);
-  if (!isValidEmail(email)) return jsonError('Please enter a valid email', 400);
+  if (!name || name.length < 2) return withCors(jsonError('Please enter your name', 400), origin);
+  if (!isValidEmail(email)) return withCors(jsonError('Please enter a valid email', 400), origin);
 
   // 1. Create Airtable record — UNPAID for now. Webhook flips it to paid + approved.
   // Tag with 'direct-paid' so you can distinguish these from regular signups.
@@ -66,11 +97,11 @@ export async function onRequestPost(context) {
 
     createdRecord = await airtableCreate(env, fields);
   } catch (err) {
-    return jsonError('Could not save your details: ' + err.message, 500);
+    return withCors(jsonError('Could not save your details: ' + err.message, 500), origin);
   }
 
   const recordId = createdRecord.id;
-  if (!recordId) return jsonError('Airtable did not return a record id', 500);
+  if (!recordId) return withCors(jsonError('Airtable did not return a record id', 500), origin);
 
   // 2. Build Stripe Checkout Session (Premium / Concierge tier)
   const amount = parseInt(env.STRIPE_PRICE_AMOUNT || '400000', 10);
@@ -108,13 +139,12 @@ export async function onRequestPost(context) {
 
   const stripeData = await stripeRes.json();
   if (!stripeRes.ok) {
-    // Record is already in Airtable — leave it, mark it so you can see in the dashboard
     console.error('[direct-checkout] Stripe error:', stripeData);
-    return jsonError('Payment session could not be created. Please try again or contact us.', 500);
+    return withCors(jsonError('Payment session could not be created. Please try again or contact us.', 500), origin);
   }
 
-  return jsonOk({
+  return withCors(jsonOk({
     url: stripeData.url,
     recordId: recordId
-  });
+  }), origin);
 }

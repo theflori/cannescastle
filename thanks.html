@@ -1,266 +1,35 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Thank you · Château Privé</title>
-<meta name="description" content="Your request has been received. Confirmed guests will be contacted by email." />
-<meta name="robots" content="noindex" />
-
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Thank you — Château Privé · Cannes 2026</title>
+<meta name="robots" content="noindex">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=EB+Garamond:wght@400;500&family=Playfair+Display:ital,wght@0,400;0,500;1,400;1,500&display=swap" rel="stylesheet">
-
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=EB+Garamond:wght@400;500&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --cream: #F1ECDF;
-    --cream-deep: #E9E2D2;
-    --paper: #FBF7EC;
-    --ink: #1A1612;
-    --ink-soft: #4a4337;
-    --ink-faint: #8a8270;
-    --gold: #B8965A;
-    --gold-deep: #9a7d44;
-    --gold-light: #d4b884;
-    --hairline: rgba(26, 22, 18, 0.12);
-    --hairline-strong: rgba(26, 22, 18, 0.28);
-    --serif: 'Playfair Display', 'Times New Roman', serif;
-    --display: 'Cormorant Garamond', 'Playfair Display', serif;
-    --body: 'EB Garamond', 'Times New Roman', serif;
-  }
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  html, body { min-height: 100vh; }
-  body {
-    background: var(--cream);
-    color: var(--ink);
-    font-family: var(--body);
-    font-weight: 400;
-    font-size: 18px;
-    line-height: 1.6;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    overflow-x: hidden;
-    display: flex;
-    flex-direction: column;
-  }
-  .noise {
-    position: fixed; inset: 0;
-    width: 100%; height: 100%;
-    pointer-events: none; opacity: 0.32;
-    mix-blend-mode: multiply; z-index: 1;
-  }
-
-  /* ============== NAV ============== */
-  .nav {
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 22px 40px;
-    border-bottom: 1px solid var(--hairline);
-    position: relative; z-index: 2;
-    background: var(--cream);
-  }
-  .nav__left { display: flex; align-items: baseline; gap: 16px; }
-  .nav__brand {
-    font-family: var(--display);
-    font-style: italic; font-weight: 400;
-    font-size: 19px;
-    color: var(--gold-deep);
-  }
-  .nav__divider {
-    width: 1px; height: 14px; align-self: center;
-    background: var(--hairline-strong);
-  }
-  .nav__label {
-    font-size: 10px;
-    color: var(--ink-faint);
-    letter-spacing: 0.32em; text-transform: uppercase;
-  }
-  .nav__meta {
-    font-size: 11px;
-    color: var(--ink-faint);
-    letter-spacing: 0.16em; text-transform: uppercase;
-  }
-
-  /* ============== MAIN ============== */
-  main {
-    flex: 1;
-    display: flex; align-items: center; justify-content: center;
-    padding: 80px 24px;
-    position: relative; z-index: 2;
-  }
-  .card {
-    max-width: 640px;
-    width: 100%;
-    text-align: center;
-    opacity: 0;
-    animation: fadeUp 1.1s ease-out 0.15s forwards;
-  }
-  .card__seal {
-    display: inline-flex;
-    align-items: center; justify-content: center;
-    width: 88px; height: 88px;
-    border: 1px solid var(--gold);
-    border-radius: 50%;
-    margin-bottom: 36px;
-    position: relative;
-  }
-  .card__seal::after {
-    content: "";
-    position: absolute; inset: 6px;
-    border: 1px solid rgba(184, 150, 90, 0.35);
-    border-radius: 50%;
-  }
-  .card__seal svg {
-    width: 32px; height: 32px;
-    color: var(--gold);
-  }
-  .card__eyebrow {
-    font-family: var(--body);
-    font-size: 11px;
-    color: var(--ink-faint);
-    letter-spacing: 0.36em; text-transform: uppercase;
-    margin-bottom: 22px;
-  }
-  .card__title {
-    font-family: var(--display);
-    font-style: italic; font-weight: 300;
-    font-size: clamp(56px, 8vw, 96px);
-    line-height: 1;
-    color: var(--gold);
-    margin-bottom: 28px;
-    letter-spacing: -0.005em;
-  }
-  .card__rule {
-    width: 60px; height: 1px;
-    background: var(--gold);
-    margin: 0 auto 28px;
-  }
-  .card__body {
-    font-family: var(--body);
-    font-size: 20px;
-    color: var(--ink-soft);
-    line-height: 1.55;
-    max-width: 520px;
-    margin: 0 auto 16px;
-  }
-  .card__body strong {
-    font-weight: 500;
-    color: var(--ink);
-  }
-  .card__small {
-    font-family: var(--body);
-    font-size: 15px;
-    color: var(--ink-faint);
-    line-height: 1.6;
-    max-width: 480px;
-    margin: 32px auto 0;
-  }
-  .card__back {
-    display: inline-flex; align-items: center; gap: 10px;
-    margin-top: 48px;
-    font-family: var(--body);
-    font-size: 11px;
-    color: var(--ink-faint);
-    letter-spacing: 0.32em; text-transform: uppercase;
-    text-decoration: none;
-    padding: 14px 24px;
-    border: 1px solid var(--hairline-strong);
-    transition: background 0.3s ease, color 0.3s ease, border-color 0.3s ease;
-  }
-  .card__back:hover {
-    background: var(--ink);
-    color: var(--cream);
-    border-color: var(--ink);
-  }
-
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  /* ============== FOOTER ============== */
-  .footer {
-    text-align: center;
-    padding: 40px 0 32px;
-    border-top: 1px solid var(--hairline);
-    position: relative; z-index: 2;
-  }
-  .footer__brand {
-    font-family: var(--display);
-    font-style: italic; font-weight: 400;
-    font-size: 22px;
-    color: var(--gold);
-    margin-bottom: 12px;
-  }
-  .footer__lines {
-    font-family: var(--body);
-    font-size: 11px;
-    color: var(--ink-faint);
-    letter-spacing: 0.18em; text-transform: uppercase;
-    line-height: 1.9;
-  }
-
-  @media (max-width: 640px) {
-    .nav { padding: 16px 22px; }
-    .nav__left { gap: 12px; }
-    .nav__label { font-size: 9px; letter-spacing: 0.28em; }
-    main { padding: 60px 22px; }
-    .card__seal { width: 72px; height: 72px; margin-bottom: 28px; }
-    .card__seal svg { width: 26px; height: 26px; }
-    .card__body { font-size: 18px; }
-    .card__small { font-size: 14px; }
-  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:#F1ECDF; color:#1A1612; font-family:'EB Garamond',Georgia,serif; min-height:100vh; display:flex; align-items:center; justify-content:center; padding:40px 24px; line-height:1.6; }
+  .wrap { max-width:520px; text-align:center; }
+  .brand { font-family:'Cormorant Garamond',Georgia,serif; font-style:italic; font-size:18px; color:#9a7d44; margin-bottom:56px; }
+  .eyebrow { font-size:11px; color:#8a8270; letter-spacing:4px; text-transform:uppercase; margin-bottom:18px; }
+  h1 { font-family:'Cormorant Garamond',Georgia,serif; font-style:italic; font-weight:300; font-size:48px; line-height:1.05; color:#B8965A; letter-spacing:-0.5px; margin-bottom:24px; }
+  .divider { display:block; width:50px; height:1px; background:#B8965A; margin:0 auto 28px; }
+  p { font-size:17px; line-height:1.7; color:#4a4337; margin-bottom:18px; }
+  .signature { margin-top:48px; font-family:'Cormorant Garamond',Georgia,serif; font-style:italic; font-size:15px; color:#8a8270; }
+  .signature .sig { color:#9a7d44; }
 </style>
 </head>
 <body>
-
-<!-- Paper noise -->
-<svg class="noise" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
-  <filter id="paperNoise">
-    <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" stitchTiles="stitch"/>
-    <feColorMatrix values="0 0 0 0 0.55  0 0 0 0 0.5  0 0 0 0 0.4  0 0 0 0.6 0"/>
-  </filter>
-  <rect width="100%" height="100%" filter="url(#paperNoise)"/>
-</svg>
-
-<!-- NAV -->
-<nav class="nav">
-  <div class="nav__left">
-    <div class="nav__brand">Château Privé</div>
-    <span class="nav__divider" aria-hidden="true"></span>
-    <div class="nav__label">Private Invitation</div>
-  </div>
-  <div class="nav__meta">Cannes · MMXXVI</div>
-</nav>
-
-<!-- MAIN -->
-<main>
-  <div class="card">
-    <div class="card__seal" aria-hidden="true">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M5 12.5 L10 17.5 L19 7"/>
-      </svg>
-    </div>
-    <div class="card__eyebrow">Request Received</div>
-    <h1 class="card__title">Thank you.</h1>
-    <div class="card__rule"></div>
-    <p class="card__body">Your request has been received and is now under review. <strong>Confirmed guests</strong> will receive a separate access confirmation by email.</p>
-    <p class="card__small">Due to limited capacity, not all requests can be approved. Please do not share this link or any details with third parties.</p>
-
-    <a href="index.html" class="card__back">
-      <span aria-hidden="true">←</span>
-      <span>Return</span>
-    </a>
-  </div>
-</main>
-
-<!-- FOOTER -->
-<footer class="footer">
-  <div class="footer__brand">Château Privé</div>
-  <div class="footer__lines">
-    Cannes · MMXXVI<br/>
-    Privately Hosted
-  </div>
-</footer>
-
+<div class="wrap">
+  <div class="brand">Château Privé</div>
+  <p class="eyebrow">Request Received</p>
+  <h1>Thank you.</h1>
+  <span class="divider"></span>
+  <p>Your request has been received. Each application is reviewed personally — given the limited capacity, not all requests can be approved.</p>
+  <p>If you are confirmed, you will receive a separate access confirmation by email.</p>
+  <p class="signature">With our regards,<br><span class="sig">Château Privé</span></p>
+</div>
 </body>
 </html>

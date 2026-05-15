@@ -31,6 +31,7 @@ export async function onRequestPost(context) {
   const type = body.type;
   const email = (body.email || '').trim();
   const phone = body.phone ? normalizePhone(body.phone) : null;
+  const overrideRid = (body.recordId || '').trim();
 
   if (!['confirmation', 'waitlist', 'reminder', 'list-closed'].includes(type)) {
     return jsonError("type must be 'confirmation', 'waitlist', 'reminder', or 'list-closed'", 400);
@@ -42,8 +43,13 @@ export async function onRequestPost(context) {
   const mockDeclineCode = 'TESTDECL';
   const mockPlusOneCode = 'TESTPLUS';
   const mockQrCode = '00000000-test-test-test-000000000000';
-  const mockPayUrl = env.STRIPE_SECRET_KEY
-    ? `${(env.DASHBOARD_PUBLIC_URL || env.PUBLIC_SITE_URL || '').replace(/\/$/, '')}/api/payment/checkout?rid=rec_TEST`
+
+  // Stripe pay URL: use real Record ID if provided so the link actually works,
+  // otherwise fall back to rec_TEST (link will hit "Record not found" — expected).
+  const dashBase = (env.DASHBOARD_PUBLIC_URL || env.PUBLIC_SITE_URL || '').replace(/\/$/, '');
+  const ridForLink = overrideRid || 'rec_TEST';
+  const mockPayUrl = (env.STRIPE_SECRET_KEY && dashBase)
+    ? `${dashBase}/api/payment/checkout?rid=${encodeURIComponent(ridForLink)}&tier=4000`
     : '';
 
   let emailContent, smsContent;

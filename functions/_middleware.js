@@ -12,13 +12,15 @@ export async function onRequest(context) {
   try {
     // === Public routes (no auth) ===
     const publicRoutes = ['/login', '/api/login', '/api/logout', '/login.html', '/api/healthcheck',
-      '/buy', '/buy.html', '/paid', '/paid.html'];
+      '/buy', '/buy.html', '/paid', '/paid.html',
+      '/decline', '/decline.html', '/plus-one', '/plus-one.html', '/thanks', '/thanks.html',
+      '/r'];
     if (publicRoutes.some(p => url.pathname === p || url.pathname.startsWith(p + '/'))) {
       return next();
     }
 
     // Payment routes are public — Stripe servers / email recipients hit these without a session
-    if (url.pathname === '/api/payment/webhook' || url.pathname === '/api/payment/checkout' || url.pathname === '/api/payment/direct-checkout') {
+    if (url.pathname === '/api/payment/webhook' || url.pathname === '/api/payment/checkout' || url.pathname === '/api/payment/direct-checkout' || url.pathname === '/api/rsvp/submit') {
       return next();
     }
 
@@ -57,6 +59,7 @@ export async function onRequest(context) {
         url.pathname === '/scan.html' ||
         url.pathname.startsWith('/scan/') ||
         url.pathname === '/api/checkin' ||
+        url.pathname.startsWith('/api/scan/') ||
         url.pathname === '/api/logout';
       if (!staffAllowed) {
         if (url.pathname.startsWith('/api/')) {

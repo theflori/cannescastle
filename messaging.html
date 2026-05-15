@@ -432,10 +432,13 @@
       <!-- TEST SEND -->
       <div class="card maintenance-section" style="margin-top:14px;padding:20px 24px;border:1px solid var(--hairline);background:#fff">
         <div style="font-family:'Inter',sans-serif;font-size:11px;color:var(--ink-faint);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px">Preview · Test send</div>
-        <div style="font-size:12px;color:var(--ink-soft);line-height:1.5;margin-bottom:14px">Send a template to your own email/phone with mock data. Does NOT touch real guests in Airtable.</div>
+        <div style="font-size:12px;color:var(--ink-soft);line-height:1.5;margin-bottom:14px">Send a template to your own email/phone with mock data. Does NOT touch real guests in Airtable.<br>For the <strong>List-Closed</strong> mail: paste a real Airtable Record ID below to test the live Stripe checkout link end-to-end.</div>
         <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">
           <input id="testEmail" type="email" class="input" placeholder="your-email@example.com" style="flex:2;min-width:200px;padding:8px 12px;font-size:13px">
           <input id="testPhone" type="tel" class="input" placeholder="+49… (optional, for SMS)" style="flex:1;min-width:160px;padding:8px 12px;font-size:13px">
+        </div>
+        <div style="margin-bottom:10px">
+          <input id="testRecordId" type="text" class="input" placeholder="Airtable Record ID — recXXXXXXXXXXXXXX (optional, makes Stripe link real)" style="width:100%;padding:8px 12px;font-size:13px;font-family:'JetBrains Mono',Menlo,monospace">
         </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
           <button class="btn btn-ghost" data-test-type="confirmation" style="padding:8px 14px;font-size:12px">Test Confirmation</button>
@@ -629,6 +632,7 @@ function bindTestSend() {
       const type = btn.dataset.testType;
       const email = document.getElementById('testEmail').value.trim();
       const phone = document.getElementById('testPhone').value.trim();
+      const recordId = (document.getElementById('testRecordId')?.value || '').trim();
       if (!email) { showToast('Enter your email first', 'error'); return; }
       const orig = btn.textContent;
       btn.disabled = true;
@@ -637,7 +641,7 @@ function bindTestSend() {
         const res = await fetch('/api/messaging/test-send', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ type, email, phone: phone || undefined })
+          body: JSON.stringify({ type, email, phone: phone || undefined, recordId: recordId || undefined })
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || 'HTTP ' + res.status);

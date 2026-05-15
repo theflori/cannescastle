@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<meta name="theme-color" content="#0F0C09">
+<title>VIP / Car List — Château Privé</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    background: #0F0C09;
+    color: #F1ECDF;
+    font-family: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+  body { padding-bottom: 40px; }
+
+  /* Top bar */
+  .top-bar {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: #0F0C09;
+    border-bottom: 1px solid rgba(241,236,223,0.12);
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .brand {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-style: italic;
+    font-size: 16px;
+    color: #d4b884;
+    line-height: 1;
+  }
+  .brand small {
+    display: block;
+    font-family: -apple-system, sans-serif;
+    font-style: normal;
+    font-size: 10px;
+    color: rgba(241,236,223,0.5);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-top: 3px;
+  }
+  .back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    background: transparent;
+    border: 1px solid rgba(241,236,223,0.2);
+    color: #F1ECDF;
+    font-size: 13px;
+    text-decoration: none;
+    border-radius: 4px;
+  }
+  .count-badge {
+    padding: 5px 10px;
+    background: #B8965A;
+    color: #0F0C09;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+  }
+
+  /* Filter bar */
+  .filter-bar {
+    display: flex;
+    gap: 8px;
+    padding: 12px 16px;
+    border-bottom: 1px solid rgba(241,236,223,0.08);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .filter-pill {
+    flex-shrink: 0;
+    padding: 8px 14px;
+    background: rgba(241,236,223,0.06);
+    border: 1px solid rgba(241,236,223,0.15);
+    color: rgba(241,236,223,0.7);
+    border-radius: 16px;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .filter-pill.active {
+    background: #B8965A;
+    border-color: #B8965A;
+    color: #0F0C09;
+  }
+  .filter-pill .ct {
+    margin-left: 6px;
+    opacity: 0.7;
+    font-weight: 400;
+  }
+
+  /* Search */
+  .search-wrap {
+    padding: 10px 16px;
+    border-bottom: 1px solid rgba(241,236,223,0.08);
+  }
+  .search {
+    width: 100%;
+    padding: 11px 14px;
+    background: rgba(241,236,223,0.06);
+    border: 1px solid rgba(241,236,223,0.15);
+    border-radius: 6px;
+    color: #F1ECDF;
+    font-size: 15px;
+    outline: none;
+    -webkit-appearance: none;
+  }
+  .search::placeholder { color: rgba(241,236,223,0.4); }
+  .search:focus { border-color: #B8965A; }
+
+  /* List */
+  .list { padding: 8px 0; }
+  .row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 16px;
+    border-bottom: 1px solid rgba(241,236,223,0.06);
+    -webkit-tap-highlight-color: rgba(184,150,90,0.15);
+  }
+  .row.checked-in { opacity: 0.5; }
+
+  .avatar {
+    flex-shrink: 0;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: rgba(241,236,223,0.08);
+    border: 1px solid rgba(184,150,90,0.4);
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .avatar img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+  }
+  .avatar .initials {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-style: italic;
+    font-size: 22px;
+    color: #d4b884;
+  }
+
+  .info { flex: 1; min-width: 0; }
+  .name {
+    font-size: 16px;
+    font-weight: 600;
+    color: #F1ECDF;
+    line-height: 1.2;
+    margin-bottom: 4px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .meta {
+    font-size: 12px;
+    color: rgba(241,236,223,0.6);
+    line-height: 1.4;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 10px;
+  }
+  .meta a {
+    color: #d4b884;
+    text-decoration: none;
+  }
+  .meta .followers {
+    color: rgba(241,236,223,0.5);
+  }
+
+  .badge-stack {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 9px;
+    border-radius: 10px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    line-height: 1.3;
+  }
+  .pill-vip {
+    background: #B8965A;
+    color: #0F0C09;
+  }
+  .pill-paid {
+    background: #1f7a3c;
+    color: #fff;
+  }
+  .pill-in {
+    background: rgba(31, 122, 60, 0.25);
+    color: #4ade80;
+    border: 1px solid rgba(31,122,60,0.5);
+  }
+
+  /* Empty / loading */
+  .state {
+    text-align: center;
+    padding: 60px 24px;
+    color: rgba(241,236,223,0.55);
+  }
+  .state h3 {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-style: italic;
+    font-weight: 300;
+    font-size: 28px;
+    color: #d4b884;
+    margin-bottom: 8px;
+  }
+  .state p { font-size: 14px; line-height: 1.5; }
+
+  .spinner {
+    display: inline-block;
+    width: 24px; height: 24px;
+    border: 2px solid rgba(241,236,223,0.2);
+    border-top-color: #B8965A;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .refresh-btn {
+    background: none;
+    border: 1px solid rgba(241,236,223,0.2);
+    color: #F1ECDF;
+    padding: 6px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .refresh-btn:disabled { opacity: 0.4; }
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <a href="/scan" class="back-btn">←&nbsp;Scanner</a>
+  <div class="brand">Château Privé<small>VIP / Car</small></div>
+  <span class="count-badge" id="countBadge">—</span>
+</div>
+
+<div class="filter-bar">
+  <button class="filter-pill active" data-filter="all">All <span class="ct" id="ctAll">—</span></button>
+  <button class="filter-pill" data-filter="pending">Not in <span class="ct" id="ctPending">—</span></button>
+  <button class="filter-pill" data-filter="checkedin">Checked in <span class="ct" id="ctIn">—</span></button>
+  <button class="refresh-btn" id="refreshBtn" style="margin-left:auto;flex-shrink:0">↻</button>
+</div>
+
+<div class="search-wrap">
+  <input type="search" class="search" id="searchInput" placeholder="Search by name or @instagram" autocomplete="off">
+</div>
+
+<div id="content">
+  <div class="state"><div class="spinner"></div><p style="margin-top:14px">Loading VIP list…</p></div>
+</div>
+
+<script>
+let allGuests = [];
+let currentFilter = 'all';
+let searchQuery = '';
+
+const $ = id => document.getElementById(id);
+
+function avatarProxy(url) {
+  if (!url) return '';
+  // Use the existing /api/avatar proxy to bypass Instagram hotlink protection
+  return '/api/avatar?url=' + encodeURIComponent(url);
+}
+
+function initials(name) {
+  const parts = (name || '').trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return '?';
+  if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
+  return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
+}
+
+function formatFollowers(n) {
+  if (typeof n !== 'number' || n <= 0) return '';
+  if (n >= 1e6) return (n / 1e6).toFixed(1).replace(/\.0$/, '') + 'M followers';
+  if (n >= 1e3) return Math.round(n / 1e3) + 'K followers';
+  return n + ' followers';
+}
+
+function escapeHtml(s) {
+  return (s || '').toString()
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+function rowHtml(g) {
+  const avatar = g.igAvatarUrl
+    ? `<img src="${avatarProxy(g.igAvatarUrl)}" alt="" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><span class="initials" style="display:none;position:absolute;inset:0;align-items:center;justify-content:center">${initials(g.name)}</span>`
+    : `<span class="initials">${initials(g.name)}</span>`;
+
+  const igLink = g.instagram
+    ? `<a href="https://instagram.com/${escapeHtml(g.instagram)}" target="_blank" rel="noopener">@${escapeHtml(g.instagram)}</a>`
+    : '';
+
+  const followers = formatFollowers(g.igFollowers);
+  const company = g.company ? escapeHtml(g.company) : '';
+
+  const metaParts = [igLink, followers, company].filter(Boolean);
+  const metaHtml = metaParts.length
+    ? metaParts.map((p, i) =>
+        i === 1 && followers ? `<span class="followers">${p}</span>` :
+        i === 2 && company ? `<span>${p}</span>` : p
+      ).join('<span style="opacity:0.3">·</span>')
+    : '<span style="opacity:0.4">No social handle</span>';
+
+  const badges = [];
+  badges.push('<span class="pill pill-vip">VIP / Car</span>');
+  if (g.hasPaid) badges.push('<span class="pill pill-paid">Paid</span>');
+  if (g.checkedIn) badges.push('<span class="pill pill-in">✓ In</span>');
+
+  return `<div class="row${g.checkedIn ? ' checked-in' : ''}" data-id="${g.id}">
+    <div class="avatar">${avatar}</div>
+    <div class="info">
+      <div class="name">${escapeHtml(g.name) || '—'}</div>
+      <div class="meta">${metaHtml}</div>
+    </div>
+    <div class="badge-stack">${badges.join('')}</div>
+  </div>`;
+}
+
+function applyFilters() {
+  let rows = allGuests.slice();
+  if (currentFilter === 'pending') rows = rows.filter(g => !g.checkedIn);
+  else if (currentFilter === 'checkedin') rows = rows.filter(g => g.checkedIn);
+
+  if (searchQuery) {
+    const q = searchQuery.toLowerCase();
+    rows = rows.filter(g => {
+      const hay = (g.name + ' ' + g.instagram + ' ' + g.company).toLowerCase();
+      return hay.includes(q);
+    });
+  }
+  return rows;
+}
+
+function render() {
+  const rows = applyFilters();
+  const content = $('content');
+
+  // Update counts
+  const totalIn = allGuests.filter(g => g.checkedIn).length;
+  $('ctAll').textContent = allGuests.length;
+  $('ctPending').textContent = allGuests.length - totalIn;
+  $('ctIn').textContent = totalIn;
+  $('countBadge').textContent = totalIn + ' / ' + allGuests.length;
+
+  if (rows.length === 0) {
+    content.innerHTML = `<div class="state">
+      <h3>${searchQuery ? 'No matches' : 'Nothing here'}</h3>
+      <p>${searchQuery ? 'Try a different search.' : (currentFilter === 'all' ? 'No VIP / Car guests yet.' : 'No guests match this filter.')}</p>
+    </div>`;
+    return;
+  }
+  content.innerHTML = '<div class="list">' + rows.map(rowHtml).join('') + '</div>';
+}
+
+async function load() {
+  $('refreshBtn').disabled = true;
+  try {
+    const res = await fetch('/api/scan/vip-list', { credentials: 'same-origin' });
+    if (!res.ok) {
+      if (res.status === 401) { window.location.href = '/login?next=' + encodeURIComponent('/scan/vip-list.html'); return; }
+      throw new Error('HTTP ' + res.status);
+    }
+    const data = await res.json();
+    allGuests = Array.isArray(data.guests) ? data.guests : [];
+    render();
+  } catch (err) {
+    $('content').innerHTML = `<div class="state"><h3>Could not load</h3><p>${escapeHtml(err.message)}</p></div>`;
+  } finally {
+    $('refreshBtn').disabled = false;
+  }
+}
+
+document.querySelectorAll('.filter-pill').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.filter-pill').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentFilter = btn.dataset.filter;
+    render();
+  });
+});
+
+$('searchInput').addEventListener('input', e => {
+  searchQuery = e.target.value.trim();
+  render();
+});
+
+$('refreshBtn').addEventListener('click', load);
+
+load();
+// Auto-refresh every 30 seconds so check-ins from the scanner show up
+setInterval(load, 30000);
+</script>
+
+</body>
+</html>
